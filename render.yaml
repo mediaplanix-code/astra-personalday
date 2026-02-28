@@ -1,0 +1,128 @@
+# ============================================================
+# render.yaml — Configurazione deploy su Render
+# Repository: astra-personalday
+# ============================================================
+
+services:
+  # ── Web Service principale (API FastAPI) ──────────────────
+  - type: web
+    name: astra-personal-api
+    runtime: python
+    region: frankfurt  # Più vicino all'Italia
+    plan: starter      # €7/mese — scala a standard quando cresce
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID_LUNA
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_15MIN
+        sync: false
+      - key: STRIPE_PRICE_30MIN
+        sync: false
+      - key: STRIPE_PRICE_60MIN
+        sync: false
+      - key: STRIPE_PRICE_MONTHLY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: NOCTURNA_API_URL
+        sync: false
+      - key: NOCTURNA_SERVICE_TOKEN
+        sync: false
+      - key: IPAPI_KEY
+        sync: false
+      - key: APP_SECRET_KEY
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  # ── Cron Job 1: Genera oroscopi ogni notte alle 05:00 ─────
+  - type: cron
+    name: astra-generate-daily
+    runtime: python
+    region: frankfurt
+    schedule: "0 5 * * *"   # Ogni giorno alle 05:00 UTC (06:00 ora italiana)
+    buildCommand: pip install -r requirements.txt
+    startCommand: >
+      python -c "
+      import httpx, os, asyncio;
+      async def run():
+          async with httpx.AsyncClient() as c:
+              r = await c.post(
+                  'https://astra-personal-api.onrender.com/api/scheduler/generate-daily',
+                  headers={'x-cron-secret': os.environ['APP_SECRET_KEY']},
+                  timeout=300
+              );
+              print(r.status_code, r.text[:200])
+      asyncio.run(run())
+      "
+    envVars:
+      - key: APP_SECRET_KEY
+        sync: false
+
+  # ── Cron Job 2: Push Telegram alle 07:00 ─────────────────
+  - type: cron
+    name: astra-telegram-push
+    runtime: python
+    region: frankfurt
+    schedule: "0 7 * * *"   # Ogni giorno alle 07:00 UTC (08:00 ora italiana)
+    buildCommand: pip install -r requirements.txt
+    startCommand: >
+      python -c "
+      import httpx, os, asyncio;
+      async def run():
+          async with httpx.AsyncClient() as c:
+              r = await c.post(
+                  'https://astra-personal-api.onrender.com/api/scheduler/send-telegram',
+                  headers={'x-cron-secret': os.environ['APP_SECRET_KEY']},
+                  timeout=120
+              );
+              print(r.status_code, r.text[:200])
+      asyncio.run(run())
+      "
+    envVars:
+      - key: APP_SECRET_KEY
+        sync: false
+
+  # ── Cron Job 3: Controlla trial scaduti alle 09:00 ────────
+  - type: cron
+    name: astra-check-trials
+    runtime: python
+    region: frankfurt
+    schedule: "0 9 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: >
+      python -c "
+      import httpx, os, asyncio;
+      async def run():
+          async with httpx.AsyncClient() as c:
+              r = await c.post(
+                  'https://astra-personal-api.onrender.com/api/scheduler/check-trials',
+                  headers={'x-cron-secret': os.environ['APP_SECRET_KEY']},
+                  timeout=60
+              );
+              print(r.status_code, r.text[:200])
+      asyncio.run(run())
+      "
+    envVars:
+      - key: APP_SECRET_KEY
+        sync: false

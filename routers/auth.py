@@ -24,6 +24,11 @@ PUBLIC_PATHS = {
     "/api/telegram/webhook",
 }
 
+# Prefissi pubblici — tutti i path che iniziano con questi sono pubblici
+PUBLIC_PREFIXES = (
+    "/api/clienti/",   # iscrizioni senza auth
+)
+
 # ── MIDDLEWARE ────────────────────────────────────────────────
 
 class SupabaseAuthMiddleware(BaseHTTPMiddleware):
@@ -35,7 +40,8 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         # Lascia passare route pubbliche e OPTIONS (CORS preflight)
-        if request.method == "OPTIONS" or request.url.path in PUBLIC_PATHS:
+        path = request.url.path
+        if request.method == "OPTIONS" or path in PUBLIC_PATHS or any(path.startswith(p) for p in PUBLIC_PREFIXES):
             return await call_next(request)
 
         # Estrai token dall'header Authorization

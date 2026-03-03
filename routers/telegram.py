@@ -195,7 +195,7 @@ async def generate_link_token(request: Request):
             r = await client.get(f"https://api.telegram.org/bot{settings.telegram_bot_token}/getMe")
             bot_username = r.json().get("result", {}).get("username", "AstraPersonalBot")
     except Exception:
-        bot_username = "AstraPersonalBot"
+        bot_username = "LunastrologicaBot"
     return {
         "token": token,
         "link": f"https://t.me/{bot_username}?start={token}",

@@ -193,7 +193,7 @@ async def generate_link_token(request: Request):
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             r = await client.get(f"https://api.telegram.org/bot{settings.telegram_bot_token}/getMe")
-            bot_username = r.json().get("result", {}).get("username", "AstraPersonalBot")
+            bot_username = r.json().get("result", {}).get("username", "LunastrologicaBot")
     except Exception:
         bot_username = "LunastrologicaBot"
     return {

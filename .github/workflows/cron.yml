@@ -1,0 +1,49 @@
+name: Astra Personal — Cron Jobs
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # 05:00 UTC — genera oroscopi
+    - cron: '0 7 * * *'   # 07:00 UTC — invia Telegram
+    - cron: '0 9 * * *'   # 09:00 UTC — controlla trial
+  workflow_dispatch:       # permette di avviare manualmente dalla UI GitHub
+
+jobs:
+
+  genera-oroscopi:
+    name: Genera oroscopi giornalieri
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 5 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Chiama endpoint genera-daily
+        run: |
+          curl -X POST https://astra-personalday.onrender.com/api/scheduler/generate-daily \
+            -H "x-cron-secret: ${{ secrets.APP_SECRET_KEY }}" \
+            -H "Content-Type: application/json" \
+            --max-time 300 \
+            --retry 2
+
+  invia-telegram:
+    name: Invia oroscopi via Telegram
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 7 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Chiama endpoint send-telegram
+        run: |
+          curl -X POST https://astra-personalday.onrender.com/api/scheduler/send-telegram \
+            -H "x-cron-secret: ${{ secrets.APP_SECRET_KEY }}" \
+            -H "Content-Type: application/json" \
+            --max-time 120 \
+            --retry 2
+
+  controlla-trial:
+    name: Controlla trial scaduti
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 9 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Chiama endpoint check-trials
+        run: |
+          curl -X POST https://astra-personalday.onrender.com/api/scheduler/check-trials \
+            -H "x-cron-secret: ${{ secrets.APP_SECRET_KEY }}" \
+            -H "Content-Type: application/json" \
+            --max-time 60 \
+            --retry 2

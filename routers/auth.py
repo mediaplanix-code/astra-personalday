@@ -84,7 +84,6 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
                 content={"error": "Token scaduto — effettua di nuovo il login"}
             )
         except jwt.InvalidTokenError as e:
-            logger.error(f"JWT error: {str(e)} | secret_len: {len(settings.supabase_jwt_secret)} | token_start: {token[:20]}")
             return JSONResponse(
                 status_code=401,
                 content={"error": f"Token non valido: {str(e)}"}

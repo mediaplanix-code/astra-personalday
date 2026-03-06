@@ -1,0 +1,2660 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#03020a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Astra Personal — Il tuo oroscopo personale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#03020a;--deep:#07050f;--card:#0d0a1a;
+  --purple:#6c3fa0;--violet:#9b59f5;--violet2:#b07ef8;
+  --gold:#f0c040;--gold2:#f5d060;
+  --rose:#e8608a;--cyan:#42d4e8;--green:#4ade80;
+  --text:#ede8f8;--soft:#c4b8e0;--muted:#7a6fa0;
+  --border:rgba(155,89,245,0.16);--border2:rgba(155,89,245,0.28);
+  --nav:58px;--r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;font-weight:400;overflow-x:hidden;padding-bottom:calc(56px + env(safe-area-inset-bottom));}
+
+/* STARS */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+background-image:
+  radial-gradient(1px 1px at 7% 11%,rgba(255,255,255,.85) 0%,transparent 100%),
+  radial-gradient(1px 1px at 19% 34%,rgba(255,255,255,.5) 0%,transparent 100%),
+  radial-gradient(1px 1px at 33% 6%,rgba(255,255,255,.75) 0%,transparent 100%),
+  radial-gradient(1px 1px at 48% 54%,rgba(255,255,255,.45) 0%,transparent 100%),
+  radial-gradient(1px 1px at 64% 20%,rgba(255,255,255,.6) 0%,transparent 100%),
+  radial-gradient(1px 1px at 79% 68%,rgba(255,255,255,.7) 0%,transparent 100%),
+  radial-gradient(1px 1px at 12% 75%,rgba(255,255,255,.5) 0%,transparent 100%),
+  radial-gradient(1px 1px at 88% 8%,rgba(255,255,255,.8) 0%,transparent 100%),
+  radial-gradient(1px 1px at 43% 83%,rgba(255,255,255,.6) 0%,transparent 100%),
+  radial-gradient(1.5px 1.5px at 27% 49%,rgba(240,192,64,.5) 0%,transparent 100%),
+  radial-gradient(1.5px 1.5px at 70% 30%,rgba(155,89,245,.55) 0%,transparent 100%),
+  radial-gradient(1px 1px at 55% 15%,rgba(255,255,255,.65) 0%,transparent 100%),
+  radial-gradient(1px 1px at 92% 60%,rgba(255,255,255,.5) 0%,transparent 100%);}
+
+/* NAV */
+nav.topnav{position:fixed;top:0;left:0;right:0;height:var(--nav);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 1rem;background:rgba(3,2,10,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Cinzel',serif;font-size:1.15rem;font-weight:700;color:var(--gold);text-decoration:none;letter-spacing:.03em;}
+.logo span{color:var(--violet2);}
+.nav-links{display:none;}
+.nav-r{display:flex;align-items:center;gap:.5rem;}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--soft);padding:.4rem .85rem;border-radius:100px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:500;transition:all .2s;text-decoration:none;white-space:nowrap;}
+.btn-ghost:hover{border-color:var(--violet);color:var(--text);}
+.btn-cta{background:linear-gradient(135deg,var(--purple),var(--violet));border:none;color:#fff;padding:.4rem .95rem;border-radius:100px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:700;box-shadow:0 0 16px rgba(108,63,160,.45);transition:all .2s;white-space:nowrap;}
+.btn-cta:active{transform:scale(.97);}
+.hamburger{display:flex;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:5px;margin-left:.2rem;}
+.hamburger span{display:block;width:20px;height:2px;background:var(--soft);border-radius:2px;}
+
+/* USER MENU */
+.umenu{position:relative;}
+.uav{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--violet));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;cursor:pointer;border:1px solid var(--border2);color:#fff;}
+.udrop{display:none;position:absolute;right:0;top:calc(100% + .5rem);background:var(--deep);border:1px solid var(--border2);border-radius:var(--r);padding:.4rem;min-width:170px;z-index:300;box-shadow:0 8px 28px rgba(0,0,0,.6);}
+.udrop.open{display:block;}
+.udrop a,.udrop button{display:block;width:100%;text-align:left;padding:.55rem .9rem;color:var(--text);text-decoration:none;font-size:.82rem;background:none;border:none;cursor:pointer;font-family:'Nunito',sans-serif;border-radius:9px;transition:background .15s;}
+.udrop a:hover,.udrop button:hover{background:rgba(255,255,255,.05);}
+.udrop .out{color:var(--rose);}
+
+/* DRAWER */
+.dov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
+.dov.open{display:block;}
+.drawer{position:fixed;top:0;right:-100%;width:75%;max-width:260px;height:100vh;background:var(--deep);border-left:1px solid var(--border);z-index:210;transition:right .28s ease;padding:4.5rem 1.4rem 2rem;display:flex;flex-direction:column;gap:.3rem;}
+.drawer.open{right:0;}
+.dclose{position:absolute;top:.8rem;right:.8rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:.4rem;}
+.drawer a{display:block;padding:.85rem 0;border-bottom:1px solid var(--border);color:var(--soft);text-decoration:none;font-family:'Cinzel',serif;font-size:.88rem;letter-spacing:.04em;transition:color .2s;}
+.drawer a:hover{color:var(--gold);}
+
+/* OVERLAY / BOTTOM SHEET */
+.overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(3,2,10,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:flex-end;justify-content:center;overflow-y:auto;}
+.overlay.open{display:flex;}
+.sheet{background:var(--deep);border:1px solid var(--border2);border-radius:20px 20px 0 0;width:100%;position:relative;padding:1.2rem 1.2rem 2.5rem;}
+.pull{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 1.1rem;}
+.shclose{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:.3rem;z-index:10;}
+
+/* AUTH MODAL */
+#authModal .sheet h3{font-family:'Cinzel',serif;font-size:1.15rem;color:var(--gold2);margin-bottom:.25rem;}
+#authModal .sheet>p{color:var(--muted);font-size:.8rem;margin-bottom:1.3rem;}
+#authLogin h3,#authForgot h3,#authReset h3{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold2);margin-bottom:.2rem;}
+.mtabs{display:flex;background:rgba(255,255,255,.04);border-radius:100px;padding:3px;margin-bottom:1.3rem;}
+.mtab{flex:1;padding:.46rem;border-radius:100px;border:none;background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;}
+.mtab.active{background:linear-gradient(135deg,var(--purple),var(--violet));color:#fff;font-weight:700;}
+.fg{margin-bottom:.85rem;}
+.fg label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.32rem;}
+.fi{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:11px;padding:.78rem .95rem;color:var(--text);font-family:'Nunito',sans-serif;font-size:16px;outline:none;-webkit-appearance:none;transition:border .18s;}
+.fi:focus{border-color:var(--violet);}
+.fi::placeholder{color:var(--muted);}
+.fi:-webkit-autofill,.fi:-webkit-autofill:hover,.fi:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px rgba(30,18,50,0.95) inset !important;-webkit-text-fill-color:var(--text) !important;border-color:var(--border);}
+.bfull{width:100%;padding:.88rem;font-size:.92rem;border-radius:12px;margin-top:.4rem;}
+.dor{text-align:center;color:var(--muted);font-size:.72rem;margin:.85rem 0;position:relative;}
+.dor::before,.dor::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border);}
+.dor::before{left:0;}.dor::after{right:0;}
+.bgoogle{width:100%;padding:.78rem;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);font-family:'Nunito',sans-serif;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;}
+.amsg{font-size:.78rem;margin-top:.6rem;text-align:center;padding:.52rem;border-radius:9px;}
+.amsg.err{background:rgba(232,96,138,.1);color:var(--rose);border:1px solid rgba(232,96,138,.28);}
+.amsg.ok{background:rgba(66,212,232,.1);color:var(--cyan);border:1px solid rgba(66,212,232,.28);}
+
+/* PAGE HEADER */
+.page-header{position:relative;z-index:1;text-align:center;padding:calc(var(--nav) + 1.6rem) 1rem 1.2rem;}
+.page-header h1{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;color:var(--gold);margin-bottom:.3rem;}
+.page-header p{color:var(--muted);font-size:.8rem;}
+
+/* SECTION LABEL */
+.sec-label{font-family:'Cinzel',serif;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--violet2);padding:.5rem .9rem .35rem;position:relative;z-index:1;display:flex;align-items:center;gap:.5rem;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* UNIFIED GRID */
+.main-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;padding:0 .9rem 1.4rem;position:relative;z-index:1;width:100%;}
+.grid-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:.8rem .75rem;display:flex;align-items:center;gap:.6rem;cursor:pointer;transition:all .18s;text-decoration:none;color:var(--text);position:relative;overflow:hidden;min-height:62px;}
+.grid-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.gc-fuoco::before{background:linear-gradient(180deg,#f97316,#ef4444);}
+.gc-terra::before{background:linear-gradient(180deg,#84cc16,#65a30d);}
+.gc-aria::before{background:linear-gradient(180deg,#38bdf8,#0ea5e9);}
+.gc-acqua::before{background:linear-gradient(180deg,#818cf8,#6366f1);}
+.gc-service::before{background:linear-gradient(180deg,var(--gold),var(--purple));}
+.grid-card:active{transform:scale(.975);background:rgba(155,89,245,.06);}
+.gc-sym{font-size:1.5rem;flex-shrink:0;width:28px;text-align:center;line-height:1;}
+.gc-info{flex:1;min-width:0;}
+.gc-name{font-family:'Cinzel',serif;font-size:.78rem;font-weight:600;margin-bottom:.08rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gc-sub{font-size:.6rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gc-arrow{color:var(--muted);font-size:.68rem;flex-shrink:0;}
+
+/* SIGN MODAL — nuova sequenza v2 */
+.sm-head{text-align:center;padding:.2rem 0 .9rem;}
+.sm-sym{
+  font-size:3.2rem;display:block;margin-bottom:.2rem;
+  filter:drop-shadow(0 0 16px rgba(155,89,245,.5));
+  animation:symGlow 3s ease-in-out infinite;
+}
+@keyframes symGlow{
+  0%,100%{filter:drop-shadow(0 0 16px rgba(155,89,245,.5))}
+  50%{filter:drop-shadow(0 0 28px rgba(240,192,64,.55))}
+}
+.sm-name{font-family:'Cinzel',serif;font-size:1.6rem;font-weight:700;color:var(--gold2);margin-bottom:.12rem;letter-spacing:.04em;}
+.sm-dates{font-size:.68rem;color:var(--muted);margin-bottom:.45rem;}
+.sm-tags{display:flex;gap:.28rem;justify-content:center;flex-wrap:wrap;}
+.sm-tag{font-size:.56rem;text-transform:uppercase;letter-spacing:.07em;padding:.16rem .55rem;border-radius:100px;border:1px solid;}
+.tag-fuoco{color:#f97316;border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.08);}
+.tag-pianeta{color:var(--violet2);border-color:var(--border2);background:rgba(155,89,245,.08);}
+.tag-qualita{color:var(--cyan);border-color:rgba(66,212,232,.3);background:rgba(66,212,232,.07);}
+.tag-polarita{color:var(--gold);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.07);}
+.tag-terra{color:#84cc16;border-color:rgba(132,204,22,.3);background:rgba(132,204,22,.07);}
+.tag-aria{color:#38bdf8;border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.07);}
+.tag-acqua{color:#818cf8;border-color:rgba(129,140,248,.3);background:rgba(129,140,248,.07);}
+
+/* ② Caratteristiche a tendina */
+.char-accordion{border:1px solid var(--border);border-radius:13px;margin-bottom:.9rem;overflow:hidden;transition:border-color .2s;}
+.char-accordion.open{border-color:var(--border2);}
+.char-head{display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;cursor:pointer;background:rgba(255,255,255,.02);border:none;width:100%;font-family:'Nunito',sans-serif;transition:background .18s;}
+.char-head:active{background:rgba(155,89,245,.06);}
+.char-head-left{display:flex;align-items:center;gap:.5rem;}
+.char-head-ico{font-size:.95rem;}
+.char-head-txt{font-family:'Cinzel',serif;font-size:.78rem;color:var(--gold2);}
+.char-head-sub{font-size:.62rem;color:var(--muted);margin-left:.3rem;}
+.char-arrow{color:var(--muted);font-size:.68rem;transition:transform .22s;}
+.char-accordion.open .char-arrow{transform:rotate(180deg);}
+.char-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 .9rem;}
+.char-accordion.open .char-body{max-height:400px;padding:.1rem .9rem .85rem;}
+.char-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem .6rem;margin-bottom:.75rem;padding-top:.65rem;}
+.char-item{display:flex;flex-direction:column;gap:.08rem;}
+.char-key{font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);}
+.char-val{font-family:'Cinzel',serif;font-size:.8rem;color:var(--soft);font-weight:600;}
+.char-traits{display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.72rem;}
+.trait{font-size:.63rem;padding:.2rem .65rem;border-radius:100px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--soft);}
+.char-desc{font-size:.78rem;line-height:1.85;color:var(--soft);border-top:1px solid var(--border);padding-top:.7rem;}
+
+/* ③ Pulsanti */
+.sign-action-row{display:flex;gap:.5rem;margin-bottom:.9rem;}
+.btn-personalizza{flex:1;padding:.76rem .5rem;border-radius:11px;font-size:.82rem;font-weight:700;text-align:center;}
+.btn-luna{flex:1;padding:.76rem .5rem;border-radius:11px;font-size:.82rem;font-weight:600;text-align:center;background:rgba(155,89,245,.12);border:1px solid var(--border2);color:var(--violet2);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;}
+.btn-luna:active{background:rgba(155,89,245,.2);}
+
+/* ④ Tab oroscopo */
+.horotabs{display:flex;background:rgba(255,255,255,.04);border-radius:100px;padding:3px;margin-bottom:.75rem;}
+.htab{flex:1;padding:.42rem;border-radius:100px;border:none;background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:.76rem;cursor:pointer;transition:all .2s;}
+.htab.active{background:linear-gradient(135deg,var(--purple),var(--violet));color:#fff;font-weight:700;}
+
+/* Mini banner dati natali sopra oroscopo */
+.natal-banner{display:none;background:rgba(240,192,64,.04);border:1px solid rgba(240,192,64,.18);border-radius:11px 11px 0 0;border-bottom:none;padding:.55rem .85rem;}
+.natal-banner.visible{display:block;}
+.natal-banner-row{display:flex;gap:.5rem;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:.1rem;}
+.natal-banner-row::-webkit-scrollbar{display:none;}
+.nbadge{display:inline-flex;align-items:center;gap:.25rem;flex-shrink:0;font-size:.64rem;padding:.2rem .6rem;border-radius:100px;border:1px solid;white-space:nowrap;}
+.nbadge-name{background:rgba(240,192,64,.08);border-color:rgba(240,192,64,.25);color:var(--gold2);}
+.nbadge-ac{background:rgba(155,89,245,.1);border-color:var(--border2);color:var(--violet2);}
+.nbadge-moon{background:rgba(66,212,232,.07);border-color:rgba(66,212,232,.2);color:var(--cyan);}
+.nbadge-label{font-size:.5rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+
+/* Box oroscopo */
+.horo-box{background:rgba(155,89,245,.06);border:1px solid var(--border);border-radius:13px;padding:.9rem .95rem;margin-bottom:.9rem;}
+.horo-box.personalized{background:rgba(240,192,64,.04);border-color:rgba(240,192,64,.22);border-radius:0 0 13px 13px;}
+.horo-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.42rem;}
+.horo-date{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--violet2);}
+.horo-date.gold{color:var(--gold);}
+.horo-badge{font-size:.57rem;color:var(--gold);border:1px solid rgba(240,192,64,.3);border-radius:100px;padding:.08rem .42rem;}
+.horo-text{font-size:.83rem;line-height:1.88;color:var(--soft);}
+
+/* ⑤ Dati natali — chip su due righe */
+.natal-chips-section{display:none;margin-bottom:.9rem;}
+.natal-chips-section.visible{display:block;}
+.natal-chips-title{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.45rem;display:flex;align-items:center;gap:.4rem;}
+.natal-chips-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.chips-grid{display:flex;flex-wrap:wrap;gap:.32rem;}
+.chip{display:inline-flex;align-items:center;gap:.28rem;flex-shrink:0;font-size:.68rem;padding:.26rem .68rem;border-radius:100px;border:1px solid;white-space:nowrap;}
+.chip-lbl{font-size:.5rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+.chip-v{font-weight:600;}
+.chip-base{background:rgba(255,255,255,.05);border-color:var(--border);color:var(--soft);}
+.chip-asc{background:rgba(155,89,245,.1);border-color:var(--border2);color:var(--violet2);}
+.chip-moon{background:rgba(66,212,232,.07);border-color:rgba(66,212,232,.2);color:var(--cyan);}
+.chip-planets{background:rgba(240,192,64,.07);border-color:rgba(240,192,64,.2);color:var(--gold2);cursor:pointer;position:relative;}
+
+/* Tendina pianeti */
+.planets-drop{display:none;position:absolute;top:calc(100% + .45rem);left:50%;transform:translateX(-50%);z-index:500;background:var(--deep);border:1px solid var(--border2);border-radius:13px;padding:.7rem .85rem;min-width:210px;box-shadow:0 8px 32px rgba(0,0,0,.75);animation:popIn .15s ease;}
+.planets-drop.open{display:block;}
+@keyframes popIn{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.pdrop-title{font-size:.57rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.32rem;margin-top:.45rem;}
+.pdrop-title:first-child{margin-top:0;}
+.pdrop-row{display:flex;justify-content:space-between;align-items:center;font-size:.67rem;padding:.12rem 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.pdrop-row:last-child{border-bottom:none;}
+.pdrop-k{color:var(--muted);}
+.pdrop-v{color:var(--soft);font-weight:600;}
+
+/* Box locked */
+.natal-locked{background:rgba(155,89,245,.05);border:1px solid var(--border);border-radius:13px;padding:.75rem;margin-bottom:.9rem;display:flex;align-items:center;gap:.7rem;}
+.locked-ico{font-size:1.2rem;opacity:.5;flex-shrink:0;}
+.locked-txt{font-size:.72rem;color:var(--muted);line-height:1.6;flex:1;}
+.locked-btn{flex-shrink:0;font-size:.7rem;color:var(--violet2);background:none;border:1px solid var(--border2);border-radius:100px;padding:.3rem .8rem;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;transition:all .2s;}
+.locked-btn:hover{background:rgba(155,89,245,.1);}
+
+/* ⑥ Servizi accordion dentro sign modal */
+.sign-services-title{font-family:'Cinzel',serif;font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--violet2);margin-bottom:.55rem;display:flex;align-items:center;gap:.5rem;}
+.sign-services-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.sacc{border:1px solid var(--border);border-radius:12px;margin-bottom:.4rem;overflow:hidden;transition:border-color .2s;}
+.sacc.open{border-color:var(--border2);}
+.sacc-head{display:flex;align-items:center;gap:.6rem;padding:.68rem .85rem;cursor:pointer;background:rgba(255,255,255,.02);border:none;width:100%;text-align:left;font-family:'Nunito',sans-serif;transition:background .18s;}
+.sacc-head:active{background:rgba(155,89,245,.06);}
+.sacc-ico{font-size:1rem;flex-shrink:0;}
+.sacc-info{flex:1;min-width:0;}
+.sacc-name{font-family:'Cinzel',serif;font-size:.77rem;color:var(--gold2);margin-bottom:.03rem;}
+.sacc-tag{font-size:.62rem;color:var(--muted);}
+.sacc-arr{color:var(--muted);font-size:.65rem;flex-shrink:0;transition:transform .22s;}
+.sacc.open .sacc-arr{transform:rotate(180deg);}
+.sacc-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .25s ease;padding:0 .85rem;}
+.sacc.open .sacc-body{max-height:500px;padding:.1rem .85rem .85rem;border-top:1px solid var(--border);}
+.sacc-desc{font-size:.77rem;color:var(--soft);line-height:1.85;margin-top:.6rem;margin-bottom:.6rem;}
+
+/* Servizi — item con flag e crediti */
+.srv-item{display:flex;align-items:center;gap:.7rem;padding:.62rem .3rem;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s;border-radius:8px;margin:0 -.3rem;}
+.srv-item:last-of-type{border-bottom:none;}
+.srv-item:active{background:rgba(155,89,245,.06);}
+.srv-item.selected{background:rgba(155,89,245,.07);}
+.srv-check{width:20px;height:20px;flex-shrink:0;border:1.5px solid var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.srv-item.selected .srv-check{background:linear-gradient(135deg,var(--purple),var(--violet));border-color:transparent;}
+.srv-item.selected .srv-check::after{content:'✓';color:#fff;font-size:.65rem;font-weight:700;}
+.srv-info{flex:1;min-width:0;}
+.srv-name{font-size:.78rem;color:var(--text);font-weight:600;margin-bottom:.05rem;}
+.srv-desc-sm{font-size:.62rem;color:var(--muted);}
+.srv-credits{display:flex;align-items:center;gap:.2rem;flex-shrink:0;font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold2);background:rgba(240,192,64,.07);border:1px solid rgba(240,192,64,.2);padding:.22rem .6rem;border-radius:100px;white-space:nowrap;}
+.cred-ico{font-size:.5rem;color:var(--gold);margin-right:.05rem;}
+.sacc-lock{font-size:.6rem;color:var(--muted);margin-top:.75rem;display:flex;align-items:center;gap:.3rem;}
+.sacc-lock::before{content:'🔒';font-size:.62rem;}
+
+/* Carrello flottante */
+.cart-bar{
+  position:fixed;
+  bottom:calc(56px + env(safe-area-inset-bottom));
+  left:50%;
+  transform:translateX(-50%) translateY(90px);
+  width:calc(100% - 2rem);
+  max-width:440px;
+  background:linear-gradient(135deg,rgba(13,10,26,.98),rgba(7,5,15,.98));
+  border:1px solid var(--border2);
+  border-radius:16px;
+  padding:.75rem 1rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.8rem;
+  box-shadow:0 -4px 32px rgba(0,0,0,.7);
+  z-index:450; /* sopra overlay(400), sotto modal secondari(500) */
+  transition:transform .3s cubic-bezier(.34,1.36,.64,1), opacity .25s ease;
+  pointer-events:none;
+  opacity:0;
+}
+.cart-bar.visible{
+  transform:translateX(-50%) translateY(0);
+  pointer-events:all;
+  opacity:1;
+}
+/* Nascosto quando un modal secondario (auth, iscrizione, luna) è aperto */
+body.modal-open .cart-bar{
+  z-index:350 !important; /* scende sotto overlay(400) → sparisce */
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+.cart-left{display:flex;align-items:center;gap:.65rem;flex:1;min-width:0;}
+/* Bundle modal */
+.bundle-pkg{display:flex;align-items:center;justify-content:space-between;padding:.72rem .9rem;border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all .18s;position:relative;background:rgba(255,255,255,.02);}
+.bundle-pkg.sel{border-color:var(--violet);background:rgba(155,89,245,.1);}
+.bundle-pkg.bpkg-popular{border-color:rgba(240,192,64,.35);background:rgba(240,192,64,.04);}
+.bundle-pkg.bpkg-popular.sel{border-color:var(--gold);background:rgba(240,192,64,.1);}
+.bpkg-badge{position:absolute;top:-.55rem;left:.8rem;font-size:.52rem;text-transform:uppercase;letter-spacing:.08em;background:var(--gold);color:#000;padding:.08rem .5rem;border-radius:100px;font-weight:700;}
+.bpkg-credits{font-family:'Cinzel',serif;font-size:.88rem;color:var(--text);font-weight:700;}
+.bpkg-label{font-size:.62rem;color:var(--muted);margin-top:.05rem;}
+.bpkg-price{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold2);font-weight:700;}
+.cart-count{width:28px;height:28px;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--violet));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;}
+.cart-info{min-width:0;}
+.cart-credits{font-family:'Cinzel',serif;font-size:.8rem;color:var(--gold2);}
+.cart-items-list{font-size:.6rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.cart-right{display:flex;flex-direction:column;align-items:flex-end;gap:.25rem;flex-shrink:0;}
+.cart-bundle-hint{font-size:.58rem;color:var(--violet2);text-align:right;}
+.cart-btn{background:linear-gradient(135deg,var(--purple),var(--violet));border:none;color:#fff;border-radius:9px;padding:.52rem 1rem;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* PERSONALIZZA BOX (mantenuto per modal personalizza) */
+.pers-box{background:linear-gradient(135deg,rgba(108,63,160,.12),rgba(155,89,245,.06));border:1px solid var(--border2);border-radius:13px;padding:1rem;}
+.pers-box-title{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold2);margin-bottom:.25rem;}
+.pers-box-desc{font-size:.76rem;color:var(--muted);line-height:1.6;margin-bottom:.75rem;}
+.delivery-opts{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.8rem;}
+.dopt{display:flex;align-items:center;gap:.3rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:.38rem .6rem;cursor:pointer;font-size:.7rem;color:var(--soft);font-family:'Nunito',sans-serif;transition:all .18s;}
+.dopt.sel{border-color:var(--violet);background:rgba(155,89,245,.1);color:var(--violet2);}
+
+/* PERSONALIZE WIZARD */
+.pers-step{display:none;}
+.pers-step.active{display:block;}
+.pers-title{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold2);margin-bottom:.25rem;}
+.pers-sub{font-size:.78rem;color:var(--muted);margin-bottom:1.1rem;line-height:1.6;}
+.plan-opt{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:.85rem 1rem;margin-bottom:.55rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .18s;}
+.plan-opt.sel{border-color:var(--violet);background:rgba(155,89,245,.08);}
+.plan-opt-left .plan-name{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold2);margin-bottom:.12rem;}
+.plan-opt-left .plan-desc{font-size:.68rem;color:var(--muted);}
+.plan-price{font-family:'Cinzel',serif;font-size:1rem;color:var(--text);}
+.plan-price small{font-size:.6rem;color:var(--muted);font-family:'Nunito',sans-serif;}
+.pers-btns{display:flex;gap:.5rem;margin-top:.9rem;}
+.pers-back{flex:0 0 auto;padding:.78rem 1.1rem;border-radius:10px;font-size:.82rem;}
+.pers-next{flex:1;padding:.78rem;border-radius:10px;font-size:.88rem;font-weight:700;}
+
+/* SERVICE MODAL */
+.srv-head{text-align:center;margin-bottom:.9rem;}
+.srv-ico-big{font-size:2.3rem;display:block;margin-bottom:.3rem;}
+.srv-head h3{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold2);margin-bottom:.18rem;}
+.srv-head p{font-size:.72rem;color:var(--muted);}
+.srv-desc-box{background:rgba(155,89,245,.05);border:1px solid var(--border);border-radius:11px;padding:.85rem;margin-bottom:.9rem;font-size:.8rem;line-height:1.8;color:var(--soft);}
+.srv-includes{list-style:none;margin-bottom:1rem;}
+.srv-includes li{font-size:.78rem;color:var(--soft);padding:.25rem 0;display:flex;align-items:center;gap:.4rem;border-bottom:1px solid rgba(255,255,255,.04);}
+.srv-includes li::before{content:'✦';font-size:.48rem;color:var(--violet2);flex-shrink:0;}
+.srv-cta-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;}
+.srv-price-tag{font-family:'Cinzel',serif;font-size:1.4rem;color:var(--text);}
+.srv-price-tag small{font-size:.65rem;color:var(--muted);font-family:'Nunito',sans-serif;display:block;}
+
+/* LUNA CHAT MODAL */
+#lunaModal .sheet{padding:0;display:flex;flex-direction:column;}
+.luna-hd{padding:.85rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.02);flex-shrink:0;position:relative;}
+.luna-pull{width:36px;height:4px;background:var(--border2);border-radius:2px;position:absolute;top:.45rem;left:50%;transform:translateX(-50%);}
+.luna-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#c084fc);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+.luna-nm{font-family:'Cinzel',serif;font-size:.82rem;font-weight:600;color:var(--gold2);}
+.luna-st{font-size:.62rem;color:var(--green);display:flex;align-items:center;gap:.22rem;}
+.luna-st::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%;}
+.luna-timer-wrap{margin-left:auto;text-align:right;}
+.luna-timer{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gold2);}
+.luna-timer.urgent{color:var(--rose);animation:pulse .8s infinite;}
+.luna-tlabel{font-size:.55rem;color:var(--muted);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.luna-msgs{flex:1;overflow-y:auto;padding:.9rem;display:flex;flex-direction:column;gap:.65rem;min-height:200px;max-height:45vh;}
+.msg{max-width:84%;padding:.65rem .85rem;border-radius:13px;font-size:.8rem;line-height:1.65;}
+.msg-a{background:rgba(108,63,160,.2);border:1px solid rgba(155,89,245,.18);align-self:flex-start;border-radius:3px 13px 13px 13px;}
+.msg-u{background:rgba(240,192,64,.08);border:1px solid rgba(240,192,64,.18);align-self:flex-end;border-radius:13px 3px 13px 13px;color:var(--gold2);}
+.luna-paywall{background:linear-gradient(135deg,rgba(108,63,160,.18),rgba(155,89,245,.1));border:1px solid var(--border2);border-radius:12px;padding:.9rem;margin:.5rem .9rem;text-align:center;flex-shrink:0;}
+.luna-paywall h4{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gold2);margin-bottom:.25rem;}
+.luna-paywall p{font-size:.72rem;color:var(--muted);margin-bottom:.75rem;line-height:1.6;}
+.luna-plans{display:flex;gap:.4rem;justify-content:center;margin-bottom:.75rem;flex-wrap:wrap;}
+.lplan{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;padding:.45rem .7rem;text-align:center;cursor:pointer;transition:all .18s;min-width:75px;}
+.lplan.sel{border-color:var(--violet);background:rgba(155,89,245,.1);}
+.lplan .lp-price{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gold2);}
+.lplan .lp-label{font-size:.55rem;color:var(--muted);margin-top:.08rem;}
+.luna-inp-row{padding:.7rem .9rem;border-top:1px solid var(--border);display:flex;gap:.5rem;align-items:center;flex-shrink:0;}
+.luna-inp{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:100px;padding:.52rem .85rem;color:var(--text);font-family:'Nunito',sans-serif;font-size:16px;outline:none;-webkit-appearance:none;}
+.luna-inp:focus{border-color:var(--violet);}
+.luna-inp::placeholder{color:var(--muted);}
+.luna-inp:disabled{opacity:.35;}
+.luna-send{width:34px;height:34px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--violet));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.88rem;}
+.luna-send:active{transform:scale(.92);}
+.luna-send:disabled{opacity:.35;cursor:not-allowed;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:1.8rem 1rem 1.2rem;position:relative;z-index:1;}
+.flogo{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--gold);text-decoration:none;}
+.flogo span{color:var(--violet2);}
+footer p{color:var(--muted);font-size:.75rem;line-height:1.7;margin-top:.4rem;}
+.flinks{display:flex;flex-wrap:wrap;gap:.35rem 1rem;margin-top:1.1rem;}
+.flinks a{color:var(--muted);text-decoration:none;font-size:.75rem;}
+.fbottom{border-top:1px solid var(--border);padding-top:.9rem;margin-top:1.1rem;text-align:center;color:var(--muted);font-size:.68rem;}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(7,5,15,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);font-size:.55rem;text-transform:uppercase;letter-spacing:.04em;background:none;border:none;font-family:'Nunito',sans-serif;text-decoration:none;transition:color .2s;}
+.bni.on{color:var(--violet2);}
+.bni .bi{font-size:1.15rem;}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.main-grid .grid-card{animation:fadeUp .38s ease both;}
+.main-grid .grid-card:nth-child(1){animation-delay:.02s}.main-grid .grid-card:nth-child(2){animation-delay:.05s}
+.main-grid .grid-card:nth-child(3){animation-delay:.08s}.main-grid .grid-card:nth-child(4){animation-delay:.11s}
+.main-grid .grid-card:nth-child(5){animation-delay:.14s}.main-grid .grid-card:nth-child(6){animation-delay:.17s}
+.main-grid .grid-card:nth-child(7){animation-delay:.2s}.main-grid .grid-card:nth-child(8){animation-delay:.23s}
+
+/* SIGN CTA LABEL */
+.sign-cta-label{font-family:'Cinzel',serif;font-size:.8rem;color:var(--gold2);text-align:center;margin:.2rem 0 .65rem;letter-spacing:.03em;}
+.horo-personal-label{font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold);text-align:center;margin:1rem 0 .5rem;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:.4rem;}
+.horo-personal-label::before,.horo-personal-label::after{content:'';flex:1;height:1px;background:rgba(240,192,64,.2);}
+
+/* MODAL ISCRIZIONE */
+.reg-row{display:flex;gap:.6rem;}
+.reg-row .fg{flex:1;min-width:0;}
+.tg-hint{background:rgba(155,89,245,.08);border:1px solid var(--border);border-radius:9px;padding:.55rem .75rem;font-size:.72rem;color:var(--muted);line-height:1.6;margin-top:.2rem;}
+.reg-msg{padding:.5rem .75rem;border-radius:8px;font-size:.76rem;margin-top:.5rem;line-height:1.5;}
+.reg-msg.err{background:rgba(232,96,138,.12);border:1px solid rgba(232,96,138,.3);color:var(--rose);}
+.reg-msg.ok{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:var(--green);}
+.reg-cart{margin-top:.75rem;border:1px solid var(--border);border-radius:10px;padding:.6rem .8rem;}
+.reg-cart summary{font-size:.75rem;color:var(--muted);cursor:pointer;list-style:none;display:flex;align-items:center;gap:.4rem;}
+.reg-cart summary::-webkit-details-marker{display:none;}
+.reg-cart .plan-opt{margin-top:.5rem;margin-bottom:.3rem;}
+.reg-confirm{text-align:center;padding:1.2rem 0 .5rem;}
+.reg-confirm .reg-ico{font-size:3rem;margin-bottom:.7rem;}
+.reg-confirm .reg-ctitle{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold2);margin-bottom:.5rem;}
+.reg-confirm p{font-size:.8rem;color:var(--muted);line-height:1.8;margin-bottom:1.2rem;}
+.tg-connect-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;background:linear-gradient(135deg,#229ED9,#1a7fc1);border:none;border-radius:11px;padding:.88rem;width:100%;color:#fff;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;text-decoration:none;margin-bottom:.6rem;}
+
+/* TABLET */
+@media(min-width:600px){
+  .main-grid{grid-template-columns:repeat(3,1fr);}
+}
+
+/* DESKTOP */
+@media(min-width:900px){
+  body{padding-bottom:56px;}
+  .hamburger{display:none;}
+  nav.topnav{padding:0 2rem;}
+  .nav-links{display:flex;gap:1.8rem;list-style:none;position:absolute;left:50%;transform:translateX(-50%);}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;font-family:'Nunito',sans-serif;transition:color .2s;}
+  .nav-links a:hover{color:var(--text);}
+  .main-grid{grid-template-columns:repeat(4,1fr);gap:.65rem;max-width:1100px;margin:0 auto;padding:0 2rem 2rem;}
+  .page-header{padding:calc(var(--nav) + 2rem) 2rem 1.4rem;}
+  .page-header h1{font-size:1.9rem;}
+  .sec-label{padding:.7rem 2rem .45rem;}
+
+  #signModal{align-items:center;justify-content:center;}
+  #signModal .sheet{border-radius:20px;max-width:680px;width:90%;max-height:88vh;overflow-y:auto;}
+  #signModal .pull{display:none;}
+  #signModal .sm-sym{font-size:3.5rem;}
+  #signModal .sm-name{font-size:1.8rem;}
+  #signModal .sm-dates{font-size:.85rem;}
+  #signModal .horo-text{font-size:1rem;line-height:1.9;}
+  #signModal .htab{font-size:.88rem;}
+  #signModal .pers-box-title{font-size:1rem;}
+  #signModal .pers-box-desc{font-size:.85rem;}
+
+  #srvModal{align-items:center;}
+  #srvModal .sheet{border-radius:18px;max-width:500px;max-height:88vh;}
+  #srvModal .pull{display:none;}
+
+  #lunaModal{align-items:center;}
+  #lunaModal .sheet{border-radius:18px;max-width:480px;max-height:88vh;}
+  #lunaModal .luna-msgs{max-height:55vh;}
+
+  #authModal{align-items:center;}
+  #authModal .sheet{border-radius:18px;max-width:400px;max-height:88vh;}
+  #authModal .pull{display:none;}
+
+  #persModal{align-items:center;}
+  #persModal .sheet{border-radius:18px;max-width:440px;max-height:88vh;}
+  #persModal .pull{display:none;}
+  #iscrizioneModal{align-items:center;}
+  #iscrizioneModal .sheet{border-radius:18px;max-width:460px;max-height:92vh;overflow-y:auto;}
+  #iscrizioneModal .pull{display:none;}
+
+  footer{padding:2.2rem 2rem 1.4rem;}
+  .footer-inner{display:grid;grid-template-columns:1fr 2fr;gap:3rem;max-width:960px;margin:0 auto;}
+  .flinks{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem .8rem;margin-top:0;align-content:start;}
+  .fbottom{max-width:960px;margin:1.1rem auto 0;}
+}
+</style>
+</head>
+<body>
+
+<!-- DRAWER -->
+<div class="dov" id="dov" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="dclose" onclick="closeDrawer()">✕</button>
+  <a href="#segni" onclick="closeDrawer()">Segni Zodiacali</a>
+  <a href="#servizi" onclick="closeDrawer()">Servizi</a>
+  <a href="#" onclick="openLuna();closeDrawer();">Parla con Luna</a>
+  <a href="#" onclick="closeDrawer()">Chi siamo</a>
+</div>
+
+<!-- AUTH MODAL — solo login + recupero password -->
+<div class="overlay" id="authModal">
+  <div class="sheet">
+    <div class="pull"></div>
+    <button class="shclose" onclick="closeAuth()">✕</button>
+
+    <!-- Login -->
+    <div id="authLogin">
+      <h3>Bentornato ✦</h3>
+      <p id="msub" style="color:var(--muted);font-size:.8rem;margin-bottom:1.1rem;">Accedi per il tuo oroscopo personale</p>
+      <div class="fg"><label>Email</label><input class="fi" type="email" id="le" placeholder="tua@email.com" autocomplete="email"></div>
+      <div class="fg"><label>Password</label><input class="fi" type="password" id="lp" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn-cta bfull" style="border-radius:11px;padding:.88rem;" onclick="doLogin()">Accedi ✦</button>
+      <p style="text-align:center;font-size:.7rem;color:var(--muted);margin-top:.7rem;">
+        <button onclick="showForgot()" style="background:none;border:none;color:var(--violet2);font-size:.7rem;cursor:pointer;text-decoration:underline;font-family:'Nunito',sans-serif;">Password dimenticata?</button>
+      </p>
+      <div class="dor">oppure</div>
+      <button class="bgoogle" onclick="doGoogle()"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Continua con Google</button>
+      <p style="text-align:center;font-size:.7rem;color:var(--muted);margin-top:.9rem;">Non hai un account? <button onclick="closeAuth();openIscrizione('personalizza');" style="background:none;border:none;color:var(--violet2);font-size:.7rem;cursor:pointer;text-decoration:underline;font-family:'Nunito',sans-serif;">Iscriviti gratis ›</button></p>
+      <div id="amsg" class="amsg" style="display:none"></div>
+    </div>
+
+    <!-- Recupero password -->
+    <div id="authForgot" style="display:none;">
+      <h3>Recupera password ✦</h3>
+      <p style="color:var(--muted);font-size:.8rem;margin-bottom:1.1rem;">Inserisci la tua email, ti mandiamo il link per reimpostare la password.</p>
+      <div class="fg"><label>Email</label><input class="fi" type="email" id="forgot-email" placeholder="tua@email.com" autocomplete="email"></div>
+      <button class="btn-cta bfull" style="border-radius:11px;padding:.88rem;" onclick="doForgot()">Invia link ✦</button>
+      <p style="text-align:center;font-size:.7rem;color:var(--muted);margin-top:.7rem;"><button onclick="hideForgot()" style="background:none;border:none;color:var(--violet2);font-size:.7rem;cursor:pointer;text-decoration:underline;font-family:'Nunito',sans-serif;">← Torna al login</button></p>
+      <div id="forgot-msg" class="amsg" style="display:none;"></div>
+    </div>
+
+    <!-- Nuova password (dopo click link email) -->
+    <div id="authReset" style="display:none;">
+      <h3>Nuova password ✦</h3>
+      <p style="color:var(--muted);font-size:.8rem;margin-bottom:1.1rem;">Inserisci la tua nuova password.</p>
+      <div class="fg"><label>Nuova password <span style="font-size:.65rem;color:var(--muted);">(min. 8 caratteri)</span></label><input class="fi" type="password" id="reset-pwd" placeholder="••••••••" autocomplete="new-password"></div>
+      <div class="fg"><label>Conferma password</label><input class="fi" type="password" id="reset-pwd2" placeholder="••••••••" autocomplete="new-password"></div>
+      <button class="btn-cta bfull" style="border-radius:11px;padding:.88rem;" onclick="doReset()">Salva password ✦</button>
+      <div id="reset-msg" class="amsg" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGN MODAL — sequenza v2 -->
+<div class="overlay" id="signModal">
+  <div class="sheet">
+    <div class="pull"></div>
+    <button class="shclose" onclick="closeSign()">✕</button>
+
+    <!-- ① INTESTAZIONE -->
+    <div class="sm-head">
+      <span class="sm-sym" id="sm-sym"></span>
+      <div class="sm-name" id="sm-name"></div>
+      <div class="sm-dates" id="sm-dates"></div>
+      <div class="sm-tags" id="sm-tags"></div>
+    </div>
+
+    <!-- ② CARATTERISTICHE — a tendina -->
+    <div class="char-accordion" id="char-acc">
+      <button class="char-head" onclick="toggleCharAcc()">
+        <div class="char-head-left">
+          <span class="char-head-ico">✦</span>
+          <span class="char-head-txt">Caratteristiche del segno</span>
+          <span class="char-head-sub" id="char-preview"></span>
+        </div>
+        <span class="char-arrow">▾</span>
+      </button>
+      <div class="char-body">
+        <div class="char-grid" id="char-grid"></div>
+        <div class="char-traits" id="char-traits"></div>
+        <div class="char-desc" id="char-desc"></div>
+      </div>
+    </div>
+
+    <!-- ③ DUE PULSANTI -->
+    <div class="sign-action-row" id="sign-action-row">
+      <button class="btn-cta btn-personalizza" id="btn-pers" onclick="openIscrizione('personalizza')">✦ Iscriviti e Personalizza</button>
+      <button class="btn-luna" onclick="openIscrizione('luna')">🌙 Consultati con Luna</button>
+    </div>
+
+    <!-- ④ TAB + OROSCOPO -->
+    <div class="horotabs">
+      <button class="htab active" onclick="setHoroTab(this,'day')">Oggi</button>
+      <button class="htab" onclick="setHoroTab(this,'month')">Mese</button>
+      <button class="htab" onclick="setHoroTab(this,'year')">Anno</button>
+    </div>
+
+
+    <!-- Visitatore: invito a iscriversi -->
+    <div class="natal-locked" id="natal-locked">
+      <span class="locked-ico">🔒</span>
+      <span class="locked-txt">Iscriviti per vedere il tuo Ascendente, Segno Lunare e le 12 Case calcolati sulla tua carta natale.</span>
+      <button class="locked-btn" onclick="openIscrizione('personalizza')">Iscriviti →</button>
+    </div>
+
+    <!-- RIGA 1 (sopra oroscopo): Nome, Sesso, Nascita, Luogo, Telegram -->
+    <div class="natal-chips-section" id="natal-chips">
+      <div class="natal-chips-title">✦ Il tuo tema natale</div>
+      <div class="chips-grid" id="chips-row1">
+        <span class="chip chip-base"><span class="chip-lbl">☀️</span><span class="chip-v" id="c-nome">—</span></span>
+        <span class="chip chip-base"><span class="chip-lbl">Sesso</span><span class="chip-v" id="c-sesso">—</span></span>
+        <span class="chip chip-base"><span class="chip-lbl">Nascita</span><span class="chip-v" id="c-nascita">—</span></span>
+        <span class="chip chip-base"><span class="chip-lbl">Luogo</span><span class="chip-v" id="c-luogo">—</span></span>
+        <span class="chip chip-base" id="tg-chip" style="display:none;cursor:pointer;background:rgba(38,139,210,.12);border-color:rgba(38,139,210,.3);color:#64b3f4;" onclick="showTelegramQR()">📲 Telegram</span>
+      </div>
+    </div>
+
+    <!-- Box oroscopo -->
+    <div class="horo-box" id="horo-box">
+      <div class="horo-top">
+        <div class="horo-date" id="horo-date"></div>
+        <div class="horo-badge" id="horo-badge" style="display:none;">🌟 Personalizzato</div>
+      </div>
+      <div class="horo-text" id="horo-text"></div>
+    </div>
+
+    <!-- RIGA 2 (sotto oroscopo): AC, Luna, Pianeti -->
+    <div class="natal-chips-section" id="natal-chips2">
+      <div class="chips-grid" id="chips-row2">
+        <span class="chip chip-asc"><span class="chip-lbl">AC</span><span class="chip-v" id="c-ac">—</span></span>
+        <span class="chip chip-moon"><span class="chip-lbl">🌙 Luna</span><span class="chip-v" id="c-luna">—</span></span>
+        <span class="chip chip-planets" id="planets-btn" onclick="togglePlanets(event)">
+          <span class="chip-lbl">🪐 Pianeti</span>
+          <span class="chip-v">▾</span>
+          <div class="planets-drop" id="planets-drop">
+            <div class="pdrop-title">✦ Case Astrologiche</div>
+            <div class="pdrop-row"><span class="pdrop-k">I Casa</span><span class="pdrop-v" id="pp-h1">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">II Casa</span><span class="pdrop-v" id="pp-h2">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">III Casa</span><span class="pdrop-v" id="pp-h3">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">IV Casa</span><span class="pdrop-v" id="pp-h4">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">V Casa</span><span class="pdrop-v" id="pp-h5">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">VI Casa</span><span class="pdrop-v" id="pp-h6">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">VII Casa</span><span class="pdrop-v" id="pp-h7">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">VIII Casa</span><span class="pdrop-v" id="pp-h8">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">IX Casa</span><span class="pdrop-v" id="pp-h9">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">X Casa</span><span class="pdrop-v" id="pp-h10">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">XI Casa</span><span class="pdrop-v" id="pp-h11">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">XII Casa</span><span class="pdrop-v" id="pp-h12">—</span></div>
+            <div class="pdrop-title">✦ Aspetti Principali</div>
+            <div class="pdrop-row"><span class="pdrop-k">☀️ Sole</span><span class="pdrop-v" id="pp-sole">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">🌙 Luna</span><span class="pdrop-v" id="pp-luna-pos">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">☿ Mercurio</span><span class="pdrop-v" id="pp-mercurio">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">♀ Venere</span><span class="pdrop-v" id="pp-venere">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">♂ Marte</span><span class="pdrop-v" id="pp-marte">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">♃ Giove</span><span class="pdrop-v" id="pp-giove">—</span></div>
+            <div class="pdrop-row"><span class="pdrop-k">♄ Saturno</span><span class="pdrop-v" id="pp-saturno">—</span></div>
+          </div>
+        </span>
+      </div>
+    </div>
+
+    <!-- ⑥ SERVIZI A TENDINA -->
+    <div class="sign-services-title">✦ Approfondisci</div>
+
+    <div class="sacc" id="sacc-amore">
+      <button class="sacc-head" onclick="toggleSacc('sacc-amore')">
+        <span class="sacc-ico">💕</span>
+        <div class="sacc-info"><div class="sacc-name">Amore & Relazioni</div><div class="sacc-tag">Compatibilità · transiti del cuore · timing</div></div>
+        <span class="sacc-arr">▾</span>
+      </button>
+      <div class="sacc-body">
+        <div class="srv-item" onclick="toggleSrvItem(this,'amore-1',6)"><div class="srv-check" id="chk-amore-1"></div><div class="srv-info"><div class="srv-name">Compatibilità con il partner</div><div class="srv-desc-sm">Sinastrìa completa su 6 aree chiave</div></div><div class="srv-credits"><span class="cred-ico">✦</span>6</div></div>
+        <div class="srv-item" onclick="toggleSrvItem(this,'amore-2',4)"><div class="srv-check" id="chk-amore-2"></div><div class="srv-info"><div class="srv-name">Transiti di Venere — 1 mese</div><div class="srv-desc-sm">Periodi favorevoli a incontri e amore</div></div><div class="srv-credits"><span class="cred-ico">✦</span>4</div></div>
+        <div class="srv-item" onclick="toggleSrvItem(this,'amore-3',8)"><div class="srv-check" id="chk-amore-3"></div><div class="srv-info"><div class="srv-name">Analisi completa coppia</div><div class="srv-desc-sm">Sfide, punti di forza e timing decisioni</div></div><div class="srv-credits"><span class="cred-ico">✦</span>8</div></div>
+        <div class="sacc-lock">Solo per iscritti · Usa i tuoi crediti</div>
+      </div>
+    </div>
+
+    <div class="sacc" id="sacc-lavoro">
+      <button class="sacc-head" onclick="toggleSacc('sacc-lavoro')">
+        <span class="sacc-ico">💼</span>
+        <div class="sacc-info"><div class="sacc-name">Lavoro & Carriera</div><div class="sacc-tag">Vocazione · timing · ambizioni</div></div>
+        <span class="sacc-arr">▾</span>
+      </button>
+      <div class="sacc-body">
+        <div class="srv-item" onclick="toggleSrvItem(this,'lavoro-1',5)"><div class="srv-check" id="chk-lavoro-1"></div><div class="srv-info"><div class="srv-name">Vocazione e talenti nascosti</div><div class="srv-desc-sm">Analisi Medio Cielo e X Casa</div></div><div class="srv-credits"><span class="cred-ico">✦</span>5</div></div>
+        <div class="srv-item" onclick="toggleSrvItem(this,'lavoro-2',4)"><div class="srv-check" id="chk-lavoro-2"></div><div class="srv-info"><div class="srv-name">Timing per cambio lavoro</div><div class="srv-desc-sm">Periodo migliore nei prossimi 3 mesi</div></div><div class="srv-credits"><span class="cred-ico">✦</span>4</div></div>
+        <div class="srv-item" onclick="toggleSrvItem(this,'lavoro-3',6)"><div class="srv-check" id="chk-lavoro-3"></div><div class="srv-info"><div class="srv-name">Relazioni con superiori</div><div class="srv-desc-sm">Dinamiche professionali dalla carta natale</div></div><div class="srv-credits"><span class="cred-ico">✦</span>6</div></div>
+        <div class="sacc-lock">Solo per iscritti · Usa i tuoi crediti</div>
+      </div>
+    </div>
+
+    <div class="sacc" id="sacc-denaro">
+      <button class="sacc-head" onclick="toggleSacc('sacc-denaro')">
+        <span class="sacc-ico">💰</span>
+        <div class="sacc-info"><div class="sacc-name">Denaro & Fortuna</div><div class="sacc-tag">Giove · II Casa · investimenti</div></div>
+        <span class="sacc-arr">▾</span>
+      </button>
+      <div class="sacc-body">
+        <div class="srv-item" onclick="toggleSrvItem(this,'denaro-1',4)"><div class="srv-check" id="chk-denaro-1"></div><div class="srv-info"><div class="srv-name">Periodi favorevoli investimenti</div><div class="srv-desc-sm">Transiti di Giove sui prossimi 3 mesi</div></div><div class="srv-credits"><span class="cred-ico">✦</span>4</div></div>
+        <div class="srv-item" onclick="toggleSrvItem(this,'denaro-2',5)"><div class="srv-check" id="chk-denaro-2"></div><div class="srv-info"><div class="srv-name">Analisi II Casa — prosperità</div><div class="srv-desc-sm">Rischi, opportunità e timing</div></div><div class="srv-credits"><span class="cred-ico">✦</span>5</div></div>
+        <div class="sacc-lock">Solo per iscritti · Usa i tuoi crediti</div>
+      </div>
+    </div>
+
+    <div class="sacc" id="sacc-natale">
+      <button class="sacc-head" onclick="toggleSacc('sacc-natale')">
+        <span class="sacc-ico">⭐</span>
+        <div class="sacc-info"><div class="sacc-name">Tema Natale Completo</div><div class="sacc-tag">La mappa della tua anima</div></div>
+        <span class="sacc-arr">▾</span>
+      </button>
+      <div class="sacc-body">
+        <div class="srv-item" onclick="toggleSrvItem(this,'natale-1',10)"><div class="srv-check" id="chk-natale-1"></div><div class="srv-info"><div class="srv-name">Report completo 20+ pagine</div><div class="srv-desc-sm">Tutti i pianeti, 12 case, aspetti principali</div></div><div class="srv-credits"><span class="cred-ico">✦</span>10</div></div>
+        <div class="srv-item" onclick="toggleSrvItem(this,'natale-2',15)"><div class="srv-check" id="chk-natale-2"></div><div class="srv-info"><div class="srv-name">Report + messaggio di Luna</div><div class="srv-desc-sm">Analisi completa con interpretazione personale</div></div><div class="srv-credits"><span class="cred-ico">✦</span>15</div></div>
+        <div class="sacc-lock">Solo per iscritti · Usa i tuoi crediti</div>
+      </div>
+    </div>
+
+    <div class="sacc" id="sacc-luna">
+      <button class="sacc-head" onclick="toggleSacc('sacc-luna')">
+        <span class="sacc-ico">🌙</span>
+        <div class="sacc-info"><div class="sacc-name">Parla con Luna</div><div class="sacc-tag">La tua astrologa personale AI</div></div>
+        <span class="sacc-arr">▾</span>
+      </button>
+      <div class="sacc-body">
+        <div class="srv-item" onclick="toggleSrvItem(this,'luna-1',8)"><div class="srv-check" id="chk-luna-1"></div><div class="srv-info"><div class="srv-name">Sessione 15 minuti</div><div class="srv-desc-sm">Consulenza testo o voce con tema natale</div></div><div class="srv-credits"><span class="cred-ico">✦</span>8</div></div>
+        <div class="srv-item" onclick="toggleSrvItem(this,'luna-2',15)"><div class="srv-check" id="chk-luna-2"></div><div class="srv-info"><div class="srv-name">Sessione 30 minuti</div><div class="srv-desc-sm">Consulenza approfondita su qualsiasi area</div></div><div class="srv-credits"><span class="cred-ico">✦</span>15</div></div>
+        <div class="sacc-lock">Solo per iscritti · Disponibile ora</div>
+      </div>
+    </div>
+
+    <div style="height:.5rem;"></div>
+  </div>
+</div>
+
+<!-- CARRELLO FLOTTANTE -->
+<div class="cart-bar" id="cart-bar">
+  <div class="cart-left">
+    <div class="cart-count" id="cart-count">0</div>
+    <div class="cart-info">
+      <div class="cart-credits" id="cart-credits">0 crediti</div>
+      <div class="cart-items-list" id="cart-items-list">Nessun servizio selezionato</div>
+    </div>
+  </div>
+  <div class="cart-right">
+    <div class="cart-bundle-hint" id="cart-bundle-hint"></div>
+    <button class="cart-btn" onclick="openBundleModal()">Acquista ✦</button>
+  </div>
+</div>
+
+<!-- BUNDLE MODAL -->
+<div class="overlay" id="bundleModal" style="z-index:500;">
+  <div class="sheet">
+    <div class="pull"></div>
+    <button class="shclose" onclick="closeBundleModal()">✕</button>
+    <div style="font-family:'Cinzel',serif;font-size:1rem;color:var(--gold2);margin-bottom:.3rem;text-align:center;">Acquista Crediti ✦</div>
+    <div style="font-size:.75rem;color:var(--muted);text-align:center;margin-bottom:1.2rem;">Scegli il pacchetto più adatto</div>
+
+    <!-- Servizi selezionati -->
+    <div style="background:rgba(155,89,245,.06);border:1px solid var(--border);border-radius:12px;padding:.75rem .9rem;margin-bottom:1rem;">
+      <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--violet2);margin-bottom:.5rem;">✦ Hai selezionato</div>
+      <div id="bundle-items-list" style="font-size:.78rem;color:var(--soft);line-height:1.8;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;padding-top:.5rem;border-top:1px solid rgba(255,255,255,.06);">
+        <span style="font-size:.65rem;color:var(--muted);">Crediti necessari</span>
+        <span id="bundle-total-credits" style="font-family:'Cinzel',serif;font-size:.88rem;color:var(--gold2);"></span>
+      </div>
+    </div>
+
+    <!-- Pacchetti crediti -->
+    <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.5rem;">Scegli il pacchetto</div>
+    <div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem;" id="bundle-packages">
+      <div class="bundle-pkg" id="bpkg-4" onclick="selectBundle(this,4,'4€')">
+        <div class="bpkg-left"><div class="bpkg-credits">4 crediti</div><div class="bpkg-label">Starter</div></div>
+        <div class="bpkg-price">4€</div>
+      </div>
+      <div class="bundle-pkg bpkg-popular" id="bpkg-12" onclick="selectBundle(this,12,'10€')">
+        <div class="bpkg-badge">Più popolare</div>
+        <div class="bpkg-left"><div class="bpkg-credits">12 crediti</div><div class="bpkg-label">+20% bonus · risparmia 2€</div></div>
+        <div class="bpkg-price">10€</div>
+      </div>
+      <div class="bundle-pkg" id="bpkg-26" onclick="selectBundle(this,26,'20€')">
+        <div class="bpkg-left"><div class="bpkg-credits">26 crediti</div><div class="bpkg-label">Best value · risparmia 6€</div></div>
+        <div class="bpkg-price">20€</div>
+      </div>
+    </div>
+
+    <div id="bundle-leftover" style="font-size:.68rem;color:var(--muted);text-align:center;margin-bottom:.9rem;min-height:1.2em;"></div>
+
+    <button class="btn-cta bfull" style="border-radius:11px;padding:.9rem;font-size:.9rem;" id="bundle-pay-btn" onclick="doBundlePayment()">
+      Procedi al pagamento ✦
+    </button>
+    <p style="text-align:center;font-size:.62rem;color:var(--muted);margin-top:.6rem;">🔒 Pagamento sicuro via Stripe · Crediti disponibili subito</p>
+  </div>
+</div>
+
+<!-- MODAL ISCRIZIONE (Personalizza + Luna — stesso form) -->
+<div class="overlay" id="iscrizioneModal">
+  <div class="sheet">
+    <div class="pull"></div>
+    <button class="shclose" onclick="closeIscrizione()">✕</button>
+
+    <!-- STEP 1: form iscrizione -->
+    <div class="pers-step active" id="istep1">
+      <div class="pers-title" id="isc-title">Iscriviti e Personalizza ✦</div>
+      <div class="pers-sub" id="isc-sub">Il tuo oroscopo ogni mattina alle 08:00 su Telegram. Gratis.</div>
+      <div class="fg"><label>Nome</label><input class="fi" type="text" id="i-name" placeholder="Il tuo nome" autocomplete="given-name"></div>
+      <div class="fg"><label>Email</label><input class="fi" type="email" id="i-email" placeholder="tua@email.com" autocomplete="email"></div>
+      <div class="fg"><label>Password <span style="color:var(--muted);font-size:.65rem;">(min. 8 caratteri)</span></label><input class="fi" type="password" id="i-pwd" placeholder="••••••••" autocomplete="new-password"></div>
+      <div class="reg-row">
+        <div class="fg"><label>Data di nascita</label><input class="fi" type="date" id="i-bdate"></div>
+        <div class="fg"><label>Ora di nascita <span style="color:var(--muted);font-size:.62rem;">(opzionale)</span></label><input class="fi" type="time" id="i-btime"></div>
+      </div>
+      <div class="fg"><label>Città di nascita</label><input class="fi" type="text" id="i-bcity" placeholder="es. Roma"></div>
+      <!-- DB: birth_country -->
+      <div class="fg"><label>Nazione di nascita</label>
+        <select class="fi" id="i-bcountry" autocomplete="country">
+          <option value="IT" selected>🇮🇹 Italia</option>
+          <option value="AF">Afghanistan</option>
+          <option value="AL">Albania</option>
+          <option value="DZ">Algeria</option>
+          <option value="AD">Andorra</option>
+          <option value="AO">Angola</option>
+          <option value="AG">Antigua e Barbuda</option>
+          <option value="AR">Argentina</option>
+          <option value="AM">Armenia</option>
+          <option value="AU">Australia</option>
+          <option value="AT">Austria</option>
+          <option value="AZ">Azerbaigian</option>
+          <option value="BS">Bahamas</option>
+          <option value="BH">Bahrein</option>
+          <option value="BD">Bangladesh</option>
+          <option value="BB">Barbados</option>
+          <option value="BY">Bielorussia</option>
+          <option value="BE">Belgio</option>
+          <option value="BZ">Belize</option>
+          <option value="BJ">Benin</option>
+          <option value="BT">Bhutan</option>
+          <option value="BO">Bolivia</option>
+          <option value="BA">Bosnia ed Erzegovina</option>
+          <option value="BW">Botswana</option>
+          <option value="BR">Brasile</option>
+          <option value="BN">Brunei</option>
+          <option value="BG">Bulgaria</option>
+          <option value="BF">Burkina Faso</option>
+          <option value="BI">Burundi</option>
+          <option value="CV">Capo Verde</option>
+          <option value="KH">Cambogia</option>
+          <option value="CM">Camerun</option>
+          <option value="CA">Canada</option>
+          <option value="CF">Repubblica Centrafricana</option>
+          <option value="TD">Ciad</option>
+          <option value="CL">Cile</option>
+          <option value="CN">Cina</option>
+          <option value="CO">Colombia</option>
+          <option value="KM">Comore</option>
+          <option value="CD">Congo (RDC)</option>
+          <option value="CG">Congo</option>
+          <option value="CR">Costa Rica</option>
+          <option value="CI">Costa d'Avorio</option>
+          <option value="HR">Croazia</option>
+          <option value="CU">Cuba</option>
+          <option value="CY">Cipro</option>
+          <option value="CZ">Repubblica Ceca</option>
+          <option value="DK">Danimarca</option>
+          <option value="DJ">Gibuti</option>
+          <option value="DM">Dominica</option>
+          <option value="DO">Repubblica Dominicana</option>
+          <option value="EC">Ecuador</option>
+          <option value="EG">Egitto</option>
+          <option value="SV">El Salvador</option>
+          <option value="GQ">Guinea Equatoriale</option>
+          <option value="ER">Eritrea</option>
+          <option value="EE">Estonia</option>
+          <option value="SZ">Eswatini</option>
+          <option value="ET">Etiopia</option>
+          <option value="FJ">Figi</option>
+          <option value="FI">Finlandia</option>
+          <option value="FR">Francia</option>
+          <option value="GA">Gabon</option>
+          <option value="GM">Gambia</option>
+          <option value="GE">Georgia</option>
+          <option value="DE">Germania</option>
+          <option value="GH">Ghana</option>
+          <option value="GR">Grecia</option>
+          <option value="GD">Grenada</option>
+          <option value="GT">Guatemala</option>
+          <option value="GN">Guinea</option>
+          <option value="GW">Guinea-Bissau</option>
+          <option value="GY">Guyana</option>
+          <option value="HT">Haiti</option>
+          <option value="HN">Honduras</option>
+          <option value="HU">Ungheria</option>
+          <option value="IS">Islanda</option>
+          <option value="IN">India</option>
+          <option value="ID">Indonesia</option>
+          <option value="IR">Iran</option>
+          <option value="IQ">Iraq</option>
+          <option value="IE">Irlanda</option>
+          <option value="IL">Israele</option>
+          <option value="JM">Giamaica</option>
+          <option value="JP">Giappone</option>
+          <option value="JO">Giordania</option>
+          <option value="KZ">Kazakistan</option>
+          <option value="KE">Kenya</option>
+          <option value="KI">Kiribati</option>
+          <option value="KW">Kuwait</option>
+          <option value="KG">Kirghizistan</option>
+          <option value="LA">Laos</option>
+          <option value="LV">Lettonia</option>
+          <option value="LB">Libano</option>
+          <option value="LS">Lesotho</option>
+          <option value="LR">Liberia</option>
+          <option value="LY">Libia</option>
+          <option value="LI">Liechtenstein</option>
+          <option value="LT">Lituania</option>
+          <option value="LU">Lussemburgo</option>
+          <option value="MG">Madagascar</option>
+          <option value="MW">Malawi</option>
+          <option value="MY">Malesia</option>
+          <option value="MV">Maldive</option>
+          <option value="ML">Mali</option>
+          <option value="MT">Malta</option>
+          <option value="MH">Isole Marshall</option>
+          <option value="MR">Mauritania</option>
+          <option value="MU">Mauritius</option>
+          <option value="MX">Messico</option>
+          <option value="FM">Micronesia</option>
+          <option value="MD">Moldavia</option>
+          <option value="MC">Monaco</option>
+          <option value="MN">Mongolia</option>
+          <option value="ME">Montenegro</option>
+          <option value="MA">Marocco</option>
+          <option value="MZ">Mozambico</option>
+          <option value="MM">Myanmar</option>
+          <option value="NA">Namibia</option>
+          <option value="NR">Nauru</option>
+          <option value="NP">Nepal</option>
+          <option value="NL">Paesi Bassi</option>
+          <option value="NZ">Nuova Zelanda</option>
+          <option value="NI">Nicaragua</option>
+          <option value="NE">Niger</option>
+          <option value="NG">Nigeria</option>
+          <option value="NO">Norvegia</option>
+          <option value="OM">Oman</option>
+          <option value="PK">Pakistan</option>
+          <option value="PW">Palau</option>
+          <option value="PA">Panama</option>
+          <option value="PG">Papua Nuova Guinea</option>
+          <option value="PY">Paraguay</option>
+          <option value="PE">Perù</option>
+          <option value="PH">Filippine</option>
+          <option value="PL">Polonia</option>
+          <option value="PT">Portogallo</option>
+          <option value="QA">Qatar</option>
+          <option value="RO">Romania</option>
+          <option value="RU">Russia</option>
+          <option value="RW">Ruanda</option>
+          <option value="KN">Saint Kitts e Nevis</option>
+          <option value="LC">Saint Lucia</option>
+          <option value="VC">Saint Vincent e Grenadine</option>
+          <option value="WS">Samoa</option>
+          <option value="SM">San Marino</option>
+          <option value="ST">São Tomé e Príncipe</option>
+          <option value="SA">Arabia Saudita</option>
+          <option value="SN">Senegal</option>
+          <option value="RS">Serbia</option>
+          <option value="SC">Seychelles</option>
+          <option value="SL">Sierra Leone</option>
+          <option value="SG">Singapore</option>
+          <option value="SK">Slovacchia</option>
+          <option value="SI">Slovenia</option>
+          <option value="SB">Isole Salomone</option>
+          <option value="SO">Somalia</option>
+          <option value="ZA">Sudafrica</option>
+          <option value="SS">Sudan del Sud</option>
+          <option value="ES">Spagna</option>
+          <option value="LK">Sri Lanka</option>
+          <option value="SD">Sudan</option>
+          <option value="SR">Suriname</option>
+          <option value="SE">Svezia</option>
+          <option value="CH">Svizzera</option>
+          <option value="SY">Siria</option>
+          <option value="TW">Taiwan</option>
+          <option value="TJ">Tagikistan</option>
+          <option value="TZ">Tanzania</option>
+          <option value="TH">Thailandia</option>
+          <option value="TL">Timor Est</option>
+          <option value="TG">Togo</option>
+          <option value="TO">Tonga</option>
+          <option value="TT">Trinidad e Tobago</option>
+          <option value="TN">Tunisia</option>
+          <option value="TR">Turchia</option>
+          <option value="TM">Turkmenistan</option>
+          <option value="TV">Tuvalu</option>
+          <option value="UG">Uganda</option>
+          <option value="UA">Ucraina</option>
+          <option value="AE">Emirati Arabi Uniti</option>
+          <option value="GB">Regno Unito</option>
+          <option value="US">Stati Uniti</option>
+          <option value="UY">Uruguay</option>
+          <option value="UZ">Uzbekistan</option>
+          <option value="VU">Vanuatu</option>
+          <option value="VE">Venezuela</option>
+          <option value="VN">Vietnam</option>
+          <option value="YE">Yemen</option>
+          <option value="ZM">Zambia</option>
+          <option value="ZW">Zimbabwe</option>
+        </select>
+      </div>
+
+      <!-- DB: gender -->
+      <div class="fg"><label>Sesso</label>
+        <div style="display:flex;gap:.5rem;margin-top:.2rem;">
+          <label id="gender-m-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.35rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:11px;padding:.72rem .5rem;cursor:pointer;font-size:.85rem;color:var(--soft);transition:all .18s;">
+            <input type="radio" name="i-gender" id="i-gender-m" value="M" style="display:none;" onchange="selectGender('M')">♂ Uomo
+          </label>
+          <label id="gender-f-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.35rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:11px;padding:.72rem .5rem;cursor:pointer;font-size:.85rem;color:var(--soft);transition:all .18s;">
+            <input type="radio" name="i-gender" id="i-gender-f" value="F" style="display:none;" onchange="selectGender('F')">♀ Donna
+          </label>
+          <label id="gender-a-lbl" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.35rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:11px;padding:.72rem .5rem;cursor:pointer;font-size:.85rem;color:var(--soft);transition:all .18s;">
+            <input type="radio" name="i-gender" id="i-gender-a" value="A" style="display:none;" onchange="selectGender('A')">✦ Altro
+          </label>
+        </div>
+      </div>
+      <div class="fg"><label>Telefono <span style="color:var(--muted);font-size:.62rem;">(opzionale)</span></label><input class="fi" type="tel" id="i-phone" placeholder="+39 333 000 0000" autocomplete="tel"></div>
+      <div class="reg-msg" id="isc-msg" style="display:none;"></div>
+      <button class="btn-cta bfull" style="border-radius:11px;padding:.9rem;margin-top:.85rem;font-size:.9rem;" onclick="doIscrizione()">Iscriviti ✦</button>
+
+    </div>
+
+    <!-- STEP 2: benvenuto stabile -->
+    <div class="pers-step" id="istep2">
+      <div class="reg-confirm" style="padding:3rem 0 1.5rem;text-align:center;">
+        <div style="font-size:2.8rem;margin-bottom:1rem;">✦</div>
+        <div style="font-family:'Cinzel',serif;font-size:.7rem;text-transform:uppercase;letter-spacing:.2em;color:var(--muted);margin-bottom:.8rem;">Benvenuto su AstraPersonal</div>
+        <div id="isc-welcome-title" style="font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:var(--gold);margin-bottom:1.5rem;line-height:1.2;"></div>
+        <div style="font-size:.82rem;color:var(--muted);line-height:1.8;margin-bottom:2.5rem;">Il tuo oroscopo personale è pronto.<br>Le stelle ti aspettano.</div>
+        <button class="btn-cta bfull" style="border-radius:11px;padding:.95rem;font-size:.95rem;font-weight:700;" onclick="goToMySign()">✦ Scopri il tuo oroscopo personale</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE MODAL -->
+<div class="overlay" id="srvModal">
+  <div class="sheet">
+    <div class="pull"></div>
+    <button class="shclose" onclick="closeSrv()">✕</button>
+    <div class="srv-head">
+      <span class="srv-ico-big" id="srv-ico"></span>
+      <h3 id="srv-name"></h3>
+      <p id="srv-tagline"></p>
+    </div>
+    <div class="srv-desc-box" id="srv-desc"></div>
+    <ul class="srv-includes" id="srv-includes"></ul>
+    <div class="srv-cta-row">
+      <div>
+        <div class="srv-price-tag" id="srv-price"></div>
+        <small style="font-size:.62rem;color:var(--muted);" id="srv-billing"></small>
+      </div>
+      <button class="btn-cta" style="padding:.72rem 1.3rem;border-radius:10px;font-size:.85rem;font-weight:700;" id="srv-buy-btn">Acquista ✦</button>
+    </div>
+    <p style="text-align:center;font-size:.62rem;color:var(--muted);margin-top:.6rem;">🔒 Pagamento sicuro · Accesso immediato</p>
+  </div>
+</div>
+
+<!-- LUNA MODAL -->
+<div class="overlay" id="lunaModal">
+  <div class="sheet">
+    <div class="luna-hd">
+      <div class="luna-pull"></div>
+      <div class="luna-av">🌙</div>
+      <div>
+        <div class="luna-nm">Luna</div>
+        <div class="luna-st">Disponibile ora</div>
+      </div>
+      <div class="luna-timer-wrap">
+        <div class="luna-timer" id="lunaTimer">—</div>
+        <div class="luna-tlabel" id="lunaTimerLabel">gratuito</div>
+      </div>
+      <button class="shclose" style="position:static;margin-left:.3rem;" onclick="closeLuna()">✕</button>
+    </div>
+    <div class="luna-msgs" id="lunaMsgs"></div>
+    <div class="luna-paywall" id="lunaPaywall" style="display:none;">
+      <h4>Vuoi continuare con Luna? ✦</h4>
+      <p>Scegli il formato più adatto a te:</p>
+      <div class="luna-plans">
+        <div class="lplan" onclick="selLPlan(this,'session')"><div class="lp-price">€8,00</div><div class="lp-label">15 min</div></div>
+        <div class="lplan" onclick="selLPlan(this,'base')"><div class="lp-price">€2,99</div><div class="lp-label">Base/mese</div></div>
+        <div class="lplan" onclick="selLPlan(this,'plus')"><div class="lp-price">€4,99</div><div class="lp-label">Plus/mese</div></div>
+      </div>
+      <button class="btn-cta bfull" style="border-radius:10px;padding:.78rem;" onclick="closeLuna();openIscrizione('luna');">Continua con Luna ✦</button>
+    </div>
+    <div class="luna-inp-row">
+      <input class="luna-inp" id="lunaInp" type="text" placeholder="Scrivi a Luna…">
+      <button class="luna-send" id="lunaSend" onclick="sendLuna()">›</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="topnav">
+  <a href="#" class="logo">Astra<span>Personal</span></a>
+  <ul class="nav-links">
+    <li><a href="#segni">Segni</a></li>
+    <li><a href="#servizi">Servizi</a></li>
+    <li><a href="#" onclick="openLuna();return false;">Luna</a></li>
+  </ul>
+  <div class="nav-r">
+    <div id="navBtns" style="display:flex;gap:.4rem;">
+      <button class="btn-ghost" onclick="openAuth('login')">Accedi</button>
+      <button class="btn-cta" onclick="openAuth('register')">Inizia ✦</button>
+    </div>
+    <div class="umenu" id="umenu" style="display:none;">
+      <div class="uav" onclick="toggleDrop()" id="uav">✦</div>
+      <div class="udrop" id="udrop">
+        <a href="#">Il mio profilo</a>
+        <a href="#">I miei abbonamenti</a>
+        <a href="#">Impostazioni</a>
+        <a href="#" onclick="openApiTester();return false;" style="color:var(--gold);opacity:.7;font-size:.78rem;">⚙ API Tester</a>
+        <button class="out" onclick="doLogout()">Esci</button>
+      </div>
+    </div>
+    <button class="hamburger" onclick="openDrawer()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Il tuo oroscopo personale</h1>
+  <p>Seleziona il tuo segno · Oggi, Mese, Anno · Personalizza con la tua data di nascita</p>
+</div>
+
+<!-- SIGNS -->
+<div class="sec-label" id="segni">♈ I dodici segni</div>
+<div class="main-grid" id="signsGrid">
+  <a class="grid-card gc-fuoco" href="#" onclick="openSign('ariete');return false;"><span class="gc-sym">♈</span><div class="gc-info"><div class="gc-name">Ariete</div><div class="gc-sub">21 Mar – 19 Apr · Fuoco</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-terra" href="#" onclick="openSign('toro');return false;"><span class="gc-sym">♉</span><div class="gc-info"><div class="gc-name">Toro</div><div class="gc-sub">20 Apr – 20 Mag · Terra</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-aria" href="#" onclick="openSign('gemelli');return false;"><span class="gc-sym">♊</span><div class="gc-info"><div class="gc-name">Gemelli</div><div class="gc-sub">21 Mag – 20 Giu · Aria</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-acqua" href="#" onclick="openSign('cancro');return false;"><span class="gc-sym">♋</span><div class="gc-info"><div class="gc-name">Cancro</div><div class="gc-sub">21 Giu – 22 Lug · Acqua</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-fuoco" href="#" onclick="openSign('leone');return false;"><span class="gc-sym">♌</span><div class="gc-info"><div class="gc-name">Leone</div><div class="gc-sub">23 Lug – 22 Ago · Fuoco</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-terra" href="#" onclick="openSign('vergine');return false;"><span class="gc-sym">♍</span><div class="gc-info"><div class="gc-name">Vergine</div><div class="gc-sub">23 Ago – 22 Set · Terra</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-aria" href="#" onclick="openSign('bilancia');return false;"><span class="gc-sym">♎</span><div class="gc-info"><div class="gc-name">Bilancia</div><div class="gc-sub">23 Set – 22 Ott · Aria</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-acqua" href="#" onclick="openSign('scorpione');return false;"><span class="gc-sym">♏</span><div class="gc-info"><div class="gc-name">Scorpione</div><div class="gc-sub">23 Ott – 21 Nov · Acqua</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-fuoco" href="#" onclick="openSign('sagittario');return false;"><span class="gc-sym">♐</span><div class="gc-info"><div class="gc-name">Sagittario</div><div class="gc-sub">22 Nov – 21 Dic · Fuoco</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-terra" href="#" onclick="openSign('capricorno');return false;"><span class="gc-sym">♑</span><div class="gc-info"><div class="gc-name">Capricorno</div><div class="gc-sub">22 Dic – 19 Gen · Terra</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-aria" href="#" onclick="openSign('acquario');return false;"><span class="gc-sym">♒</span><div class="gc-info"><div class="gc-name">Acquario</div><div class="gc-sub">20 Gen – 18 Feb · Aria</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-acqua" href="#" onclick="openSign('pesci');return false;"><span class="gc-sym">♓</span><div class="gc-info"><div class="gc-name">Pesci</div><div class="gc-sub">19 Feb – 20 Mar · Acqua</div></div><span class="gc-arrow">›</span></a>
+</div>
+
+<!-- SERVICES -->
+<div class="sec-label" id="servizi">✦ Approfondisci</div>
+<div class="main-grid">
+  <a class="grid-card gc-service" href="#" onclick="openSrv('amore');return false;"><span class="gc-sym">💕</span><div class="gc-info"><div class="gc-name">Amore & Relazioni</div><div class="gc-sub">Compatibilità · transiti del cuore</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-service" href="#" onclick="openSrv('lavoro');return false;"><span class="gc-sym">💼</span><div class="gc-info"><div class="gc-name">Lavoro & Carriera</div><div class="gc-sub">Vocazione · timing · ambizioni</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-service" href="#" onclick="openSrv('denaro');return false;"><span class="gc-sym">💰</span><div class="gc-info"><div class="gc-name">Denaro & Fortuna</div><div class="gc-sub">Giove · investimenti · prosperità</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-service" href="#" onclick="openSrv('natale');return false;"><span class="gc-sym">⭐</span><div class="gc-info"><div class="gc-name">Tema Natale Completo</div><div class="gc-sub">La mappa della tua anima</div></div><span class="gc-arrow">›</span></a>
+  <a class="grid-card gc-service" href="#" onclick="openLuna();return false;"><span class="gc-sym">🌙</span><div class="gc-info"><div class="gc-name">Parla con Luna</div><div class="gc-sub">La tua astrologa personale AI</div></div><span class="gc-arrow">›</span></a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <a href="#" class="flogo">Astra<span>Personal</span></a>
+      <p>Il tuo oroscopo personale ogni giorno. Basato sulla tua carta natale, sempre con te.</p>
+    </div>
+    <div class="flinks">
+      <a href="#">Chi siamo</a><a href="#">Contatti</a>
+      <a href="#">Privacy Policy</a><a href="#">Termini d'uso</a>
+      <a href="#">Instagram</a><a href="#">TikTok</a><a href="#">Telegram</a>
+    </div>
+  </div>
+  <div class="fbottom">© 2026 Astra Personal · Tutti i diritti riservati · Fatto con ✦ e stelle</div>
+</footer>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <a href="#" class="bni on"><span class="bi">🏠</span><span>Home</span></a>
+  <a href="#segni" class="bni"><span class="bi">♈</span><span>Segni</span></a>
+  <a href="#servizi" class="bni"><span class="bi">✦</span><span>Servizi</span></a>
+  <button class="bni" onclick="openLuna()"><span class="bi">🌙</span><span>Luna</span></button>
+  <button class="bni" onclick="openAuth('login')"><span class="bi">👤</span><span>Accedi</span></button>
+</nav>
+
+<script>
+// ── CONFIGURAZIONE ────────────────────────────────────────────
+const SUPABASE_URL = 'https://xefuzwuarbdhbdqqydrq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhlZnV6d3VhcmJkaGJkcXF5ZHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNjc3NDAsImV4cCI6MjA4Nzg0Mzc0MH0.OL1kcCCwUKXF0n8DcqpSMoiIHCnWVdClSqwU3mfYBwk';
+const BACKEND_URL = 'https://astra-personalday.onrender.com';
+
+const{createClient}=supabase;
+const sb=createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function backendFetch(path, options={}) {
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Non autenticato');
+  const res = await fetch(BACKEND_URL + path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.error || `Errore ${res.status}`);
+  }
+  return res.json();
+}
+
+let user = null;
+// Promise che si risolve quando la sessione è verificata (o dopo 3 sec di timeout)
+let _sessionReadyResolve;
+const sessionReadyPromise = Promise.race([
+  new Promise(r => { _sessionReadyResolve = r; }),
+  new Promise(r => setTimeout(r, 3000)) // timeout sicurezza
+]);
+
+sb.auth.getSession().then(({data:{session}})=>{
+  user = session?.user || null;
+  _sessionReadyResolve();
+  updateUI();
+  if(user) loadUserMeta();
+});
+
+async function loadUserMeta(){
+  if(!user) return;
+  // profiles è l'unica fonte di verità (sistema unificato)
+  const {data: pd} = await sb.from('profiles').select('first_name,last_name,display_name,sun_sign,birth_date,gender,ascendant,moon_sign').eq('id',user.id).maybeSingle();
+  if(pd){
+    window._userFirstName = pd.first_name || pd.display_name || '';
+    window._userSunSign = (pd.sun_sign||'').toLowerCase() || getSunSign(pd.birth_date);
+  }
+}
+
+function updateUI(){
+  const nb=document.getElementById('navBtns'),um=document.getElementById('umenu');
+  if(user){
+    nb.style.display='none';
+    um.style.display='block';
+    document.getElementById('uav').textContent=(user.email||'?')[0].toUpperCase();
+    // Aggiorna pulsanti nella scheda segno se è aperta
+    updateSignButtons();
+  } else {
+    nb.style.display='flex';
+    um.style.display='none';
+    updateSignButtons();
+  }
+}
+
+async function loadUserBirthData(){
+  if(!user) return;
+  // profiles è l'unica fonte di verità
+  const {data: pd} = await sb.from('profiles').select('birth_date,birth_time,birth_city,birth_country').eq('id', user.id).maybeSingle();
+  if(pd && pd.birth_date){
+    const d = document.getElementById('p-date'); if(d) d.value = pd.birth_date || '';
+    const t = document.getElementById('p-time'); if(t) t.value = pd.birth_time || '';
+    const c = document.getElementById('p-city'); if(c) c.value = pd.birth_city || '';
+  }
+}
+async function saveBirthData(){
+  if(!user) { openAuth('register'); return false; }
+  const birthDate = document.getElementById('p-date').value;
+  const birthTime = document.getElementById('p-time').value;
+  const birthCity = document.getElementById('p-city').value;
+  if(!birthDate || !birthCity){ alert('Inserisci data e città di nascita'); return false; }
+  try {
+    await backendFetch('/api/profiles/me/birth-data', {
+      method: 'POST',
+      body: JSON.stringify({ birth_date: birthDate, birth_time: birthTime || null, birth_city: birthCity, birth_country: 'IT' })
+    });
+    await sb.from('birth_data').upsert({ user_id: user.id, birth_date: birthDate, birth_time: birthTime || null, birth_city: birthCity, is_primary: true });
+    return true;
+  } catch(err) {
+    alert('Errore nel salvataggio: ' + err.message);
+    return false;
+  }
+}
+
+// ── OROSCOPI GRATUITI ─────────────────────────────────────────
+// Visibili a tutti, senza login
+const FREE_HORO = {
+  ariete: {
+    day: "Oggi Marte ti riempie di energia e determinazione. È il momento giusto per affrontare le sfide con coraggio e prendere l'iniziativa. In amore porta pazienza, qualcuno vicino a te ha bisogno di attenzione. Sul lavoro, un'idea brillante potrebbe fare la differenza.",
+    month: "Questo mese l'Ariete è chiamato a dimostrare il proprio valore. Le stelle favoriscono i nuovi inizi e i progetti ambiziosi. A metà mese Venere porta dolcezza nelle relazioni. Evita decisioni affrettate dopo il 20.",
+    year: "Il 2026 è un anno di trasformazione profonda per l'Ariete. Giove in aspetto favorevole apre porte inaspettate nella carriera. In amore, chi è in coppia rafforza il legame, chi è single potrebbe fare incontri significativi. La salute richiede attenzione nella seconda metà dell'anno."
+  },
+  toro: {
+    day: "Venere illumina la tua giornata con armonia e bellezza. Ottimo momento per dedicarsi a piaceri semplici e coltivare relazioni importanti. Sul lavoro la costanza paga più dell'urgenza. Stasera concediti un momento di relax.",
+    month: "Il Toro vive un mese di stabilità e consolidamento. Le finanze migliorano grazie a scelte ponderate. In amore c'è bisogno di dialogo aperto. Sul lavoro, i progetti avviati in primavera iniziano a dare i loro frutti.",
+    year: "Il 2026 porta al Toro una crescita graduale ma solida. Saturno favorisce la costruzione di fondamenta stabili. L'estate è il periodo più fortunato per gli investimenti. In amore, l'autunno porta novità entusiasmanti."
+  },
+  gemelli: {
+    day: "Mercurio accelera il tuo pensiero e la tua comunicazione. Giornata ideale per conversazioni importanti, trattative e scambi di idee. Attenzione a non disperdere le energie su troppi fronti contemporaneamente.",
+    month: "Mese vivace per i Gemelli, ricco di incontri e opportunità sociali. La comunicazione è il tuo punto di forza: sfruttala. A lavoro arriva una proposta interessante che merita riflessione. In amore evita la superficialità.",
+    year: "Il 2026 porta ai Gemelli nuove connessioni e aperture mentali straordinarie. Urano stimola la creatività e il desiderio di cambiamento. Estate perfetta per viaggi e formazione. In amore, la comunicazione è la chiave di tutto."
+  },
+  cancro: {
+    day: "La Luna, tua reggente, ti dona oggi grande intuizione e sensibilità. Fidati del tuo istinto nelle decisioni importanti. In famiglia l'armonia è favorita. Sul lavoro, il tuo approccio empatico conquista la fiducia dei colleghi.",
+    month: "Mese intenso emotivamente per il Cancro. La Luna piena a metà mese porta a galla sentimenti nascosti. In amore è il momento di parlare con il cuore in mano. Sul lavoro, un progetto a cui tieni riceve finalmente il riconoscimento meritato.",
+    year: "Il 2026 è un anno di fioritura emotiva per il Cancro. Giove nel settore della casa porta gioie familiari. In primavera un evento importante segna una svolta positiva. Sul lavoro, la seconda metà dell'anno è la più produttiva."
+  },
+  leone: {
+    day: "Il Sole splende su di te e tu irradi carisma e vitalità. Oggi sei al centro dell'attenzione e sai come gestirla. In amore porta generosità e il partner ne sarà conquistato. Sul lavoro, la tua leadership fa la differenza.",
+    month: "Mese di grande visibilità per il Leone. Le stelle ti spingono verso il palcoscenico della vita. In amore la passione è alta ma attenzione all'orgoglio ferito. A lavoro, un riconoscimento importante potrebbe arrivare verso fine mese.",
+    year: "Il 2026 porta al Leone opportunità di brillare in modo autentico. Saturno ti chiede disciplina, ma Giove premia chi si impegna. Estate straordinaria per l'amore. In autunno arriva una svolta professionale attesa da tempo."
+  },
+  vergine: {
+    day: "Mercurio affina il tuo intelletto e la tua capacità analitica. Giornata perfetta per risolvere problemi complessi e mettere ordine nelle questioni pratiche. In amore, mostra il lato tenero che spesso nascondi. La salute è favorita.",
+    month: "Mese di efficienza e precisione per la Vergine. Il lavoro procede bene grazie alla tua attenzione ai dettagli. In amore, a metà mese Venere porta romanticismo inaspettato. Dedica del tempo anche al riposo.",
+    year: "Il 2026 è l'anno in cui la Vergine raccoglie ciò che ha seminato con cura. Saturno premia la dedizione. In primavera arriva un'opportunità professionale da non perdere. In amore, l'autunno porta stabilità e dolcezza."
+  },
+  bilancia: {
+    day: "Venere, tua reggente, porta equilibrio e armonia nella tua giornata. Ottimo momento per risolvere conflitti e cercare compromessi. In amore la dolcezza conquista più delle parole. Sul lavoro, la tua capacità diplomatica è preziosa.",
+    month: "Mese di scelte importanti per la Bilancia. Le stelle ti chiedono di decidere senza rimandare oltre. In amore è tempo di chiarezza. Sul lavoro, una partnership potrebbe rivelarsi molto proficua nei prossimi mesi.",
+    year: "Il 2026 porta alla Bilancia un anno di relazioni significative e crescita personale. Giove favorisce i nuovi inizi. Primavera ed estate sono i periodi più fortunati per l'amore. Sul lavoro, l'autunno porta soddisfazioni concrete."
+  },
+  scorpione: {
+    day: "Plutone intensifica la tua percezione e il tuo potere interiore. Oggi riesci a vedere oltre le apparenze. Ottimo momento per trasformazioni personali e scelte coraggiose. In amore, la profondità emotiva ti distingue.",
+    month: "Mese di trasformazione per lo Scorpione. Qualcosa che non funzionava più lascia spazio a qualcosa di meglio. In amore, la sincerità è fondamentale. Sul lavoro, una situazione complicata si risolve grazie alla tua tenacia.",
+    year: "Il 2026 è un anno di rinascita per lo Scorpione. Plutone e Marte ti danno la forza di cambiare ciò che non ti appartiene più. Estate intensa in amore. Sul lavoro, la seconda metà dell'anno porta riconoscimenti importanti."
+  },
+  sagittario: {
+    day: "Giove amplia i tuoi orizzonti e alimenta il tuo ottimismo. Giornata ideale per pianificare viaggi, studiare o condividere le tue idee con il mondo. In amore porta entusiasmo. Sul lavoro, una visione ampia ti distingue.",
+    month: "Mese avventuroso per il Sagittario. Le stelle favoriscono spostamenti, nuove conoscenze e crescita culturale. In amore, chi è single potrebbe fare un incontro speciale. Sul lavoro, un progetto internazionale si fa interessante.",
+    year: "Il 2026 è un anno di espansione e libertà per il Sagittario. Giove, tuo reggente, apre porte nel mondo. Primavera ideale per decisioni coraggiose. In amore, l'estate porta incontri speciali. Sul lavoro, l'autunno è il momento del raccolto."
+  },
+  capricorno: {
+    day: "Saturno ti dona disciplina e chiarezza di intenti. Giornata produttiva per chi sa concentrarsi sugli obiettivi. In amore, mostra la tua vulnerabilità: sorprenderai te stesso. Sul lavoro, la perseveranza porta risultati concreti.",
+    month: "Mese di impegno e risultati per il Capricorno. Le stelle premiano chi lavora con serietà. In amore, a fine mese arriva un momento romantico inaspettato. Sul lavoro, un riconoscimento che aspettavi si avvicina.",
+    year: "Il 2026 porta al Capricorno il coronamento di anni di impegno. Saturno in posizione favorevole apre nuove opportunità professionali. Estate ideale per investimenti immobiliari. In amore, l'autunno porta stabilità e progetti condivisi."
+  },
+  acquario: {
+    day: "Urano accende la tua originalità e il tuo spirito innovativo. Oggi le tue idee fuori dagli schemi possono cambiare le cose. In amore, sorprendi il partner con un gesto insolito. Sul lavoro, la tecnologia è tua alleata.",
+    month: "Mese di innovazione e rivoluzione per l'Acquario. Le stelle ti spingono a rompere vecchi schemi. In amore, la sincerità vale più della diplomazia. Sul lavoro, un'idea rivoluzionaria potrebbe cambiare il corso delle cose.",
+    year: "Il 2026 è l'anno dell'Acquario per eccellenza. Urano porta cambiamenti radicali e liberatori. Primavera ideale per nuovi progetti. In amore, chi cerca trova. Sul lavoro, la seconda metà dell'anno è ricca di opportunità tecnologiche e creative."
+  },
+  pesci: {
+    day: "Nettuno amplifica la tua sensibilità e creatività. Giornata ideale per l'arte, la spiritualità e i sogni. Fidati della tua intuizione nelle questioni importanti. In amore sei al tuo meglio: romantici e profondi. Sul lavoro, la creatività paga.",
+    month: "Mese mistico e creativo per i Pesci. Le stelle favoriscono l'ispirazione artistica e le connessioni spirituali. In amore, la Luna piena porta chiarezza su una situazione sentimentale. Sul lavoro, un progetto creativo riceve apprezzamento.",
+    year: "Il 2026 è un anno di realizzazione spirituale e creativa per i Pesci. Nettuno porta sogni che diventano realtà. Primavera e estate sono i periodi più magici. In amore, l'autunno porta un legame profondo e duraturo."
+  }
+};
+
+// ── SEGNI ─────────────────────────────────────────────────────
+const SIGNS={
+  ariete:{sym:'♈',name:'Ariete',dates:'21 Mar – 19 Apr',element:'Fuoco',planet:'Marte',traits:['Coraggioso','Leader','Impulsivo']},
+  toro:{sym:'♉',name:'Toro',dates:'20 Apr – 20 Mag',element:'Terra',planet:'Venere',traits:['Paziente','Affidabile','Sensuale']},
+  gemelli:{sym:'♊',name:'Gemelli',dates:'21 Mag – 20 Giu',element:'Aria',planet:'Mercurio',traits:['Versatile','Curioso','Comunicativo']},
+  cancro:{sym:'♋',name:'Cancro',dates:'21 Giu – 22 Lug',element:'Acqua',planet:'Luna',traits:['Intuitivo','Empatico','Protettivo']},
+  leone:{sym:'♌',name:'Leone',dates:'23 Lug – 22 Ago',element:'Fuoco',planet:'Sole',traits:['Carismatico','Generoso','Orgoglioso']},
+  vergine:{sym:'♍',name:'Vergine',dates:'23 Ago – 22 Set',element:'Terra',planet:'Mercurio',traits:['Preciso','Analitico','Dedicato']},
+  bilancia:{sym:'♎',name:'Bilancia',dates:'23 Set – 22 Ott',element:'Aria',planet:'Venere',traits:['Diplomatico','Armonioso','Equilibrato']},
+  scorpione:{sym:'♏',name:'Scorpione',dates:'23 Ott – 21 Nov',element:'Acqua',planet:'Plutone',traits:['Intenso','Trasformativo','Intuitivo']},
+  sagittario:{sym:'♐',name:'Sagittario',dates:'22 Nov – 21 Dic',element:'Fuoco',planet:'Giove',traits:['Ottimista','Avventuriero','Filosofico']},
+  capricorno:{sym:'♑',name:'Capricorno',dates:'22 Dic – 19 Gen',element:'Terra',planet:'Saturno',traits:['Ambizioso','Disciplinato','Responsabile']},
+  acquario:{sym:'♒',name:'Acquario',dates:'20 Gen – 18 Feb',element:'Aria',planet:'Urano',traits:['Originale','Visionario','Indipendente']},
+  pesci:{sym:'♓',name:'Pesci',dates:'19 Feb – 20 Mar',element:'Acqua',planet:'Nettuno',traits:['Empatico','Creativo','Spirituale']},
+};
+
+let currentSign=null, currentHoroTab='day';
+
+// ── FETCH OROSCOPO ────────────────────────────────────────────
+async function fetchHoro(sign, period){
+  if(!user) return FREE_HORO[sign]?.[period] || 'Oroscopo in arrivo 🌙';
+  if(period !== 'day') return FREE_HORO[sign]?.[period] || 'Oroscopo in arrivo 🌙';
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // 1. Leggi direttamente da daily_horoscopes via Supabase JS — istantaneo se il cron ha già girato
+  try {
+    const {data: hd} = await sb.from('daily_horoscopes')
+      .select('text_content, section_general')
+      .eq('user_id', user.id)
+      .eq('horoscope_date', today)
+      .eq('status', 'completed')
+      .maybeSingle();
+    if(hd?.text_content) return hd.text_content;
+    if(hd?.section_general) return hd.section_general;
+  } catch(e) { /* continua con fallback backend */ }
+
+  // 2. Non esiste ancora — chiedi al backend di generarlo (10-15 sec, solo la prima volta del giorno)
+  const horoEl = document.getElementById('horo-text');
+  horoEl.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:.6rem;">
+      <div style="height:.8rem;background:rgba(255,255,255,.07);border-radius:4px;width:100%;animation:shimmer 1.4s infinite;"></div>
+      <div style="height:.8rem;background:rgba(255,255,255,.07);border-radius:4px;width:90%;animation:shimmer 1.4s infinite .1s;"></div>
+      <div style="height:.8rem;background:rgba(255,255,255,.07);border-radius:4px;width:95%;animation:shimmer 1.4s infinite .2s;"></div>
+      <div style="height:.8rem;background:rgba(255,255,255,.07);border-radius:4px;width:80%;animation:shimmer 1.4s infinite .3s;"></div>
+      <div style="height:.7rem;background:rgba(255,255,255,.04);border-radius:4px;width:60%;margin-top:.3rem;animation:shimmer 1.4s infinite .4s;"></div>
+    </div>
+    <style>@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}</style>`;
+
+  try {
+    const data = await backendFetch('/api/horoscope/today');
+    return data.text_content || data.section_general || FREE_HORO[sign]?.day || 'Oroscopo generato ✦';
+  } catch(err) {
+    return FREE_HORO[sign]?.day || 'Oroscopo in preparazione 🌙';
+  }
+}
+
+// ── DATI ESTESI PER SEGNI ─────────────────────────────────────
+const SIGNS_EXT = {
+  ariete:    {quality:'Cardinale', polarity:'Positivo', desc:'Pioniere dello zodiaco, l\'Ariete porta una forza vitale inesauribile. Il suo coraggio apre strade dove gli altri esitano. Guidato da Marte, agisce prima di pensare — e spesso ha ragione.'},
+  toro:      {quality:'Fisso',     polarity:'Negativo',  desc:'Il Toro costruisce su basi solide. Paziente e determinato, trasforma il sudore in prosperità. Venere gli dona il gusto per il bello, la musica, il cibo e i piaceri autentici della vita.'},
+  gemelli:   {quality:'Mutabile', polarity:'Positivo', desc:'La mente dei Gemelli viaggia a velocità della luce. Instancabile curioso, sa trovare il collegamento tra idee lontane. Mercurio gli regala la parola come strumento di magia.'},
+  cancro:    {quality:'Cardinale', polarity:'Negativo',  desc:'Il Cancro sente prima di capire. La sua intelligenza emotiva è un dono raro. La Luna lo rende profondo e mutevole come le maree — protettivo con chi ama, invalicabile per gli estranei.'},
+  leone:     {quality:'Fisso',     polarity:'Positivo', desc:'Il Leone porta luce ovunque vada. Il Sole lo illumina dall\'interno, dando carisma e generosità naturale. Ha bisogno di esprimersi, di essere visto — e quando è al suo meglio, merita ogni applauso.'},
+  vergine:   {quality:'Mutabile', polarity:'Negativo',  desc:'La Vergine affina, migliora e porta ordine nel caos. Con Mercurio come guida, vede i dettagli che gli altri perdono. Il suo servizio è una forma d\'amore — preciso, concreto, reale.'},
+  bilancia:  {quality:'Cardinale', polarity:'Positivo', desc:'La Bilancia cerca l\'armonia come il respiro cerca l\'aria. Venere le dona grazia e gusto per la giustizia. Sa ascoltare tutti i lati e trovare il punto di incontro dove gli altri vedono solo contrasto.'},
+  scorpione: {quality:'Fisso',     polarity:'Negativo',  desc:'Lo Scorpione non ha paura di guardare dove fa buio. Plutone lo guida nelle profondità, trasformando le ferite in potere. Intenso, magnetico, leale fino all\'osso con chi merita la sua fiducia.'},
+  sagittario:{quality:'Mutabile', polarity:'Positivo', desc:'Il Sagittario punta lontano — geograficamente, spiritualmente, intellettualmente. Giove espande il suo orizzonte senza fine. Il suo ottimismo è contagioso e la sua libertà, irrinunciabile.'},
+  capricorno:{quality:'Cardinale', polarity:'Negativo',  desc:'Il Capricorno scala montagne che altri non vedono nemmeno. Saturno gli insegna che la disciplina è la forma più nobile di rispetto per sé stessi. Pazienta. E poi trionfa.'},
+  acquario:  {quality:'Fisso',     polarity:'Positivo', desc:'L\'Acquario pensa in avanti di vent\'anni. Urano lo spinge oltre le convenzioni verso un futuro che solo lui riesce a immaginare. Eccentrico, geniale, profondamente umano nella sua visione.'},
+  pesci:     {quality:'Mutabile', polarity:'Negativo',  desc:'I Pesci nuotano tra i mondi — quello visibile e quello che si sente solo di notte. Nettuno li rende artisti dell\'anima, capaci di empatia illimitata e di sogni che diventano realtà.'},
+};
+
+// Colori per elemento
+const ELEM_CLASS = {Fuoco:'tag-fuoco',Terra:'tag-terra',Aria:'tag-aria',Acqua:'tag-acqua'};
+
+async function openSign(s){
+  const d = SIGNS[s]; if(!d) return;
+  currentSign = s;
+  cartItems = {}; updateCart();
+
+  // ① Intestazione
+  document.getElementById('sm-sym').textContent = d.sym;
+  document.getElementById('sm-name').textContent = d.name;
+  document.getElementById('sm-dates').textContent = d.dates;
+  const ec = ELEM_CLASS[d.element] || 'tag-qualita';
+  document.getElementById('sm-tags').innerHTML =
+    `<span class="sm-tag ${ec}">${d.element}</span>`+
+    `<span class="sm-tag tag-pianeta">♟ ${d.planet}</span>`+
+    d.traits.map(t=>`<span class="sm-tag tag-qualita">${t}</span>`).join('');
+
+  // ② Caratteristiche accordion — carica dati
+  const ext = SIGNS_EXT[s] || {};
+  document.getElementById('char-preview').textContent = `${d.element} · ${ext.quality||''}`;
+  document.getElementById('char-grid').innerHTML =
+    `<div class="char-item"><div class="char-key">Elemento</div><div class="char-val">${d.element}</div></div>`+
+    `<div class="char-item"><div class="char-key">Pianeta</div><div class="char-val">${d.planet}</div></div>`+
+    `<div class="char-item"><div class="char-key">Qualità</div><div class="char-val">${ext.quality||'—'}</div></div>`+
+    `<div class="char-item"><div class="char-key">Polarità</div><div class="char-val">${ext.polarity||'—'}</div></div>`;
+  document.getElementById('char-traits').innerHTML = d.traits.map(t=>`<span class="trait">${t}</span>`).join('');
+  document.getElementById('char-desc').textContent = ext.desc || '';
+  const acc = document.getElementById('char-acc');
+  acc.classList.remove('open');
+
+  // Apri il modal subito — l'utente vede qualcosa istantaneamente
+  document.getElementById('signModal').classList.add('open');
+  document.body.style.overflow='hidden';
+
+  // ③ Aspetta che la sessione sia verificata (di solito <100ms, mai più di 1-2 sec)
+  await sessionReadyPromise;
+
+  // ④ Pulsanti — aggiorna ora che sappiamo se l'utente è loggato
+  updateSignButtons();
+
+  // ⑤ Oroscopo
+  const firstTab = document.querySelector('#signModal .htab');
+  document.querySelectorAll('#signModal .htab').forEach(t=>t.classList.remove('active'));
+  if(firstTab) firstTab.classList.add('active');
+  setHoroTab(firstTab,'day');
+
+  // ⑥ Dati natali — sessione già pronta qui, nessuna race condition
+  if(user){
+    loadNatalChips();
+  } else {
+    showNatalLocked();
+  }
+}
+
+function closeSign(){
+  document.getElementById('signModal').classList.remove('open');
+  document.body.style.overflow='';
+  // Svuota carrello e nascondilo quando si chiude la scheda
+  cartItems = {};
+  const bar = document.getElementById('cart-bar');
+  if(bar){ bar.classList.remove('visible'); }
+  // Chiudi tendina pianeti se aperta
+  const pdrop = document.getElementById('planets-drop');
+  if(pdrop) pdrop.classList.remove('open');
+}
+
+function updateSignButtons(){
+  const row = document.getElementById('sign-action-row');
+  if(!row) return;
+  if(user){
+    // Utente già iscritto: su qualsiasi segno vede solo Luna
+    row.innerHTML = `<button class="btn-luna" style="flex:1;" onclick="closeSign();setTimeout(openLuna,200);">🌙 Consultati con Luna</button>`;
+  } else {
+    // Non iscritto: vede entrambi i pulsanti
+    row.innerHTML = `<button class="btn-cta btn-personalizza" onclick="openIscrizione('personalizza')">✦ Iscriviti e Personalizza</button><button class="btn-luna" onclick="openIscrizione('luna')">🌙 Consultati con Luna</button>`;
+  }
+}
+
+function toggleCharAcc(){
+  document.getElementById('char-acc').classList.toggle('open');
+}
+
+function showNatalLocked(){
+  document.getElementById('natal-locked').style.display = 'flex';
+  document.getElementById('natal-chips').classList.remove('visible'); const nc2=document.getElementById('natal-chips2'); if(nc2) nc2.classList.remove('visible');
+}
+
+async function loadNatalChips(){
+  if(!user) return;
+  document.getElementById('natal-locked').style.display = 'none';
+
+  // Legge tutto da profiles — dati statici calcolati alla registrazione
+  // Zero dipendenza da daily_horoscopes, risposta istantanea
+  const {data: pr, error} = await sb.from('profiles')
+    .select('first_name,display_name,birth_date,birth_city,gender,sun_sign,moon_sign,ascendant,natal_planets_json,natal_houses_json')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if(!pr || !pr.birth_date) return;
+
+  const sNames = {ariete:'Ariete',toro:'Toro',gemelli:'Gemelli',cancro:'Cancro',leone:'Leone',vergine:'Vergine',bilancia:'Bilancia',scorpione:'Scorpione',sagittario:'Sagittario',capricorno:'Capricorno',acquario:'Acquario',pesci:'Pesci'};
+  const lonToSign = lon => {
+    const signs = ['Ariete','Toro','Gemelli','Cancro','Leone','Vergine','Bilancia','Scorpione','Sagittario','Capricorno','Acquario','Pesci'];
+    return signs[Math.floor(((lon % 360) + 360) % 360 / 30) % 12];
+  };
+
+  const ascRaw = (pr.ascendant||'').toLowerCase();
+  const moonRaw = (pr.moon_sign||'').toLowerCase();
+  const asc  = sNames[ascRaw]  || pr.ascendant  || null;
+  const moon = sNames[moonRaw] || pr.moon_sign  || null;
+  const gMap = {M:'Uomo',F:'Donna',other:'Altro',not_specified:'—',A:'Altro'};
+  const bdStr = pr.birth_date ? new Date(pr.birth_date).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—';
+
+  window._userFirstName = pr.first_name || pr.display_name || '';
+  const userSign = (pr.sun_sign||'').toLowerCase() || getSunSign(pr.birth_date) || '';
+  window._userSunSign = userSign;
+
+  // Su altri segni: identico a utente non iscritto
+  if(currentSign !== userSign){
+    document.getElementById('natal-locked').style.display = 'none';
+    document.getElementById('natal-chips').classList.remove('visible');
+    const nc2 = document.getElementById('natal-chips2'); if(nc2) nc2.classList.remove('visible');
+    return;
+  }
+
+  // Chip riga 1
+  document.getElementById('c-nome').textContent = (pr.first_name||'').split(' ')[0] || '—';
+  document.getElementById('c-sesso').textContent = gMap[pr.gender] || '—';
+  document.getElementById('c-nascita').textContent = bdStr;
+  document.getElementById('c-luogo').textContent = pr.birth_city || '—';
+  document.getElementById('tg-chip').style.display = 'inline-flex';
+
+  // Chip riga 2 — ascendente e luna da profiles (istantanei)
+  document.getElementById('c-ac').textContent = asc || '—';
+  document.getElementById('c-luna').textContent = moon || '—';
+  document.getElementById('natal-chips2').classList.add('visible');
+
+  // Pianeti natali da profiles.natal_planets_json (salvati alla registrazione)
+  if(pr.natal_planets_json){
+    const np = pr.natal_planets_json;
+    const planetMap = {'SUN':'pp-sole','MOON':'pp-luna-pos','MERCURY':'pp-mercurio','VENUS':'pp-venere','MARS':'pp-marte','JUPITER':'pp-giove','SATURN':'pp-saturno'};
+    for(const [planet, elId] of Object.entries(planetMap)){
+      const el = document.getElementById(elId);
+      const pData = np[planet];
+      if(el && pData?.longitude != null) el.textContent = lonToSign(pData.longitude);
+    }
+  }
+
+  // Case natali da profiles.natal_houses_json (già convertite in segni)
+  if(pr.natal_houses_json){
+    for(let i=1;i<=12;i++){
+      const el = document.getElementById('pp-h'+i);
+      if(el) el.textContent = pr.natal_houses_json['house_'+i] || '—';
+    }
+  }
+
+  checkTelegramStatus();
+  document.getElementById('horo-box').classList.add('personalized');
+  document.getElementById('horo-date').classList.add('gold');
+  document.getElementById('natal-chips').classList.add('visible');
+}
+
+async function showTelegramQR() {
+  if(!user) { openIscrizione(); return; }
+  try {
+    const res = await backendFetch('/api/telegram/generate-link-token', { method: 'POST' });
+    if(!res?.token) return;
+    const token = res.token;
+    const link = `https://t.me/LunastrologicaBot?start=${token}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
+    let m = document.getElementById('tg-qr-modal');
+    if(!m){
+      m = document.createElement('div');
+      m.id = 'tg-qr-modal';
+      m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
+      m.innerHTML = `
+        <div style="background:var(--deep);border:1px solid var(--border);border-radius:18px;padding:2rem;text-align:center;max-width:300px;width:90%;">
+          <div style="font-family:'Cinzel',serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);margin-bottom:1rem;">Collegati a Telegram</div>
+          <img src="${qrUrl}" style="border-radius:12px;width:180px;height:180px;margin-bottom:1rem;">
+          <div style="font-size:.8rem;color:var(--soft);line-height:1.6;margin-bottom:1.2rem;">Scannerizza con il tuo smartphone<br>per ricevere l'oroscopo ogni mattina</div>
+          <a href="${link}" target="_blank" style="display:block;background:rgba(38,139,210,.2);border:1px solid rgba(38,139,210,.4);color:#64b3f4;border-radius:10px;padding:.7rem;font-size:.85rem;text-decoration:none;margin-bottom:.8rem;">📲 Apri Telegram</a>
+          <button onclick="document.getElementById('tg-qr-modal').remove()" style="background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;">✕ Chiudi</button>
+        </div>`;
+      document.body.appendChild(m);
+      m.addEventListener('click', e => { if(e.target===m) m.remove(); });
+    } else {
+      m.querySelector('img').src = qrUrl;
+      m.querySelector('a').href = link;
+      m.style.display = 'flex';
+    }
+  } catch(e) { console.warn('Telegram QR error:', e.message); }
+}
+
+async function checkTelegramStatus() {
+  if(!user) return;
+  try {
+    const status = await backendFetch('/api/telegram/status');
+    const badge = document.getElementById('tg-connect-badge');
+    if(!badge) return;
+    if(status?.status === 'active') {
+      badge.textContent = '✅ Telegram';
+      badge.style.cursor = 'default';
+      badge.onclick = null;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'inline-flex';
+    }
+  } catch(e) {}
+}
+
+function togglePlanets(e){
+  e.stopPropagation();
+  document.getElementById('planets-drop').classList.toggle('open');
+}
+
+async function setHoroTab(el, type){
+  if(!currentSign) return;
+  document.querySelectorAll('#signModal .htab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  currentHoroTab = type;
+  const today = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const dates = {day:today, month:new Date().toLocaleDateString('it-IT',{month:'long',year:'numeric'}), year:'Anno 2026'};
+  document.getElementById('horo-date').textContent = dates[type];
+
+  // Oroscopo personalizzato SOLO se iscritto E questo è il suo segno solare
+  const isMySign = user && window._userSunSign === currentSign;
+  const badge = document.getElementById('horo-badge');
+  if(isMySign && type==='day'){ badge.style.display='inline-block'; } else { badge.style.display='none'; }
+
+  // Stile box: personalizzato se è il mio segno, generico altrimenti
+  const box = document.getElementById('horo-box');
+  const dateEl = document.getElementById('horo-date');
+  if(isMySign){ box.classList.add('personalized'); dateEl.classList.add('gold'); }
+  else { box.classList.remove('personalized'); dateEl.classList.remove('gold'); }
+
+  document.getElementById('horo-text').innerHTML = '<span style="color:var(--muted);font-style:italic;">Caricamento...</span>';
+
+  // Tabs mese e anno — testo generico (oroscopo personalizzato mensile/annuale in sviluppo)
+  if(type !== 'day'){
+    const baseText = FREE_HORO[currentSign]?.[type] || 'Oroscopo in arrivo 🌙';
+    document.getElementById('horo-text').textContent = baseText;
+    // Se è il mio segno, aggiungi nota sottile sotto l'oroscopo
+    if(isMySign){
+      const noteId = 'horo-personal-note';
+      let note = document.getElementById(noteId);
+      if(!note){
+        note = document.createElement('div');
+        note.id = noteId;
+        note.style.cssText = 'font-size:.65rem;color:var(--muted);margin-top:.7rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.06);';
+        document.getElementById('horo-box').appendChild(note);
+      }
+      note.textContent = type==='month'
+        ? '✦ Oroscopo mensile personalizzato disponibile con il piano Premium'
+        : '✦ Previsioni annuali personalizzate disponibili con il piano Premium';
+      note.style.display = 'block';
+    }
+    return;
+  }
+  // Nascondi nota se torniamo a "Oggi"
+  const existingNote = document.getElementById('horo-personal-note');
+  if(existingNote) existingNote.style.display = 'none';
+
+  // Tab "Oggi"
+  const text = await fetchHoro(currentSign, type);
+
+  // Se è il mio segno: prependi saluto con nome
+  if(isMySign && window._userFirstName){
+    document.getElementById('horo-text').textContent = 'Ciao ' + window._userFirstName + ', ' + text.charAt(0).toLowerCase() + text.slice(1);
+  } else {
+    document.getElementById('horo-text').textContent = text;
+  }
+}
+
+function openLunaFromSign(){ if(!user){ openIscrizione('luna'); } else { closeSign(); setTimeout(openLuna,200); } }
+
+// ── ACCORDION SERVIZI NELLA SCHEDA ───────────────────────────
+function toggleSacc(id){
+  const el = document.getElementById(id);
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.sacc').forEach(s=>s.classList.remove('open'));
+  if(!wasOpen) el.classList.add('open');
+}
+
+// ── CARRELLO SERVIZI ─────────────────────────────────────────
+let cartItems = {}; // { id: { name, credits } }
+
+const BUNDLE_PRICES = [
+  {credits:4, price:'4€', label:'Starter'},
+  {credits:12, price:'10€', label:'Popolare +20%', bonus:2},
+  {credits:26, price:'20€', label:'Best Value +30%', bonus:6},
+];
+
+function toggleSrvItem(el, id, credits){
+  if(!user){ openIscrizione('personalizza'); return; }
+  el.classList.toggle('selected');
+  const name = el.querySelector('.srv-name')?.textContent || id;
+  if(el.classList.contains('selected')){
+    cartItems[id] = {name, credits};
+  } else {
+    delete cartItems[id];
+  }
+  updateCart();
+}
+
+function updateCart(){
+  const ids = Object.keys(cartItems);
+  const total = ids.reduce((s,k)=>s+cartItems[k].credits,0);
+  const bar = document.getElementById('cart-bar');
+  if(!bar) return;
+
+  // Il carrello è visibile SOLO se c'è almeno un item E signModal è aperto
+  const signOpen = document.getElementById('signModal')?.classList.contains('open');
+  // Nascosto se un modal secondario è aperto sopra
+  const secondModalOpen = document.body.classList.contains('modal-open');
+
+  if(ids.length === 0 || !signOpen || secondModalOpen){
+    bar.classList.remove('visible');
+    return;
+  }
+
+  bar.classList.add('visible');
+  document.getElementById('cart-count').textContent = ids.length;
+  document.getElementById('cart-credits').textContent = total + ' crediti';
+  document.getElementById('cart-items-list').textContent = ids.map(k=>cartItems[k].name).join(' · ');
+
+  // Suggerisce bundle conveniente
+  const best = BUNDLE_PRICES.slice().reverse().find(b=>b.credits>=total) || BUNDLE_PRICES[BUNDLE_PRICES.length-1];
+  const hint = document.getElementById('cart-bundle-hint');
+  if(best.bonus){ hint.textContent = best.price+' → '+best.label; }
+  else { hint.textContent = best.price+' · '+best.label; }
+}
+
+// persModal rimosso — tutto gestito da iscrizioneModal
+
+// ── BUNDLE MODAL ─────────────────────────────────────────────
+let selectedBundle = null; // { credits, price }
+
+function openBundleModal(){
+  if(!user){ openIscrizione('personalizza'); return; }
+  const ids = Object.keys(cartItems);
+  const total = ids.reduce((s,k)=>s+cartItems[k].credits,0);
+
+  // Popola lista servizi selezionati
+  document.getElementById('bundle-items-list').innerHTML =
+    ids.map(k=>`<div style="display:flex;justify-content:space-between;"><span>${cartItems[k].name}</span><span style="color:var(--gold2);">✦ ${cartItems[k].credits}</span></div>`).join('');
+  document.getElementById('bundle-total-credits').textContent = total + ' crediti';
+
+  // Seleziona automaticamente il bundle minimo sufficiente
+  const autoBundle = total <= 4 ? 'bpkg-4' : total <= 12 ? 'bpkg-12' : 'bpkg-26';
+  document.querySelectorAll('.bundle-pkg').forEach(p=>p.classList.remove('sel'));
+  const autoPkg = document.getElementById(autoBundle);
+  if(autoPkg){ autoPkg.classList.add('sel'); }
+  const credits = autoBundle==='bpkg-4'?4:autoBundle==='bpkg-12'?12:26;
+  const price   = autoBundle==='bpkg-4'?'4€':autoBundle==='bpkg-12'?'10€':'20€';
+  selectedBundle = {credits, price};
+  updateBundleLeftover(total, credits);
+
+  document.getElementById('bundleModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.body.classList.add('modal-open');
+}
+
+function closeBundleModal(){
+  document.getElementById('bundleModal').classList.remove('open');
+  document.body.style.overflow='';
+  document.body.classList.remove('modal-open');
+  updateCart();
+}
+
+function selectBundle(el, credits, price){
+  document.querySelectorAll('.bundle-pkg').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedBundle = {credits, price};
+  const total = Object.values(cartItems).reduce((s,v)=>s+v.credits,0);
+  updateBundleLeftover(total, credits);
+}
+
+function updateBundleLeftover(needed, bundleCredits){
+  const leftover = bundleCredits - needed;
+  const el = document.getElementById('bundle-leftover');
+  if(!el) return;
+  if(bundleCredits < needed){
+    el.style.color='var(--red,#f87171)';
+    el.textContent = '⚠ Crediti insufficienti per i servizi selezionati';
+  } else if(leftover > 0){
+    el.style.color='var(--muted)';
+    el.textContent = leftover + ' crediti rimarranno nel tuo saldo dopo l\'acquisto';
+  } else {
+    el.textContent='';
+  }
+}
+
+async function doBundlePayment(){
+  if(!selectedBundle){ return; }
+  const btn = document.getElementById('bundle-pay-btn');
+  btn.textContent = 'Reindirizzamento a Stripe…';
+  btn.disabled = true;
+
+  try {
+    const data = await backendFetch('/api/payments/create-checkout', {
+      method: 'POST',
+      body: JSON.stringify({
+        credits: selectedBundle.credits,
+        price:   selectedBundle.price,
+        items:   Object.entries(cartItems).map(([id,v])=>({id, name:v.name, credits:v.credits}))
+      })
+    });
+    if(data.url){ window.location.href = data.url; }
+    else { throw new Error('URL Stripe non ricevuto'); }
+  } catch(e){
+    btn.textContent = 'Procedi al pagamento ✦';
+    btn.disabled = false;
+    // Mostra messaggio placeholder finché Stripe non è integrato
+    document.getElementById('bundle-leftover').style.color = 'var(--violet2)';
+    document.getElementById('bundle-leftover').textContent =
+      '✦ Pagamento in arrivo! Stripe verrà integrato presto. Ti contatteremo via Telegram.';
+  }
+}
+
+// ============================================================
+// MODAL ISCRIZIONE — flusso unificato (personalizza + luna)
+// ============================================================
+let iscrizioneDestino = 'personalizza'; // 'personalizza' o 'luna'
+
+function openIscrizione(destino) {
+  // Se già loggato: vai direttamente alla destinazione
+  if (user) {
+    if (destino === 'luna') { closeSign(); setTimeout(openLuna, 200); }
+    else { openPersonalize(); }
+    return;
+  }
+  iscrizioneDestino = destino || 'personalizza';
+  const title = document.getElementById('isc-title');
+  const sub = document.getElementById('isc-sub');
+  if (destino === 'luna') {
+    title.textContent = 'Iscriviti e Consultati con Luna ✦';
+    sub.textContent = 'Crea il tuo profilo per accedere a Luna, la tua astrologa personale.';
+  } else {
+    title.textContent = 'Iscriviti e Personalizza ✦';
+    sub.textContent = 'Il tuo oroscopo ogni mattina alle 08:00 su Telegram. Gratis.';
+  }
+  // Reset form e step
+  document.querySelectorAll('#iscrizioneModal .pers-step').forEach(x => x.classList.remove('active'));
+  document.getElementById('istep1').classList.add('active');
+  document.getElementById('isc-msg').style.display = 'none';
+  document.getElementById('iscrizioneModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.body.classList.add('modal-open');
+}
+
+function closeIscrizione() {
+  document.getElementById('iscrizioneModal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.body.classList.remove('modal-open');
+  updateCart();
+}
+
+function showIscMsg(msg, tipo='err') {
+  const el = document.getElementById('isc-msg');
+  el.textContent = msg;
+  el.className = 'reg-msg ' + tipo;
+  el.style.display = 'block';
+}
+
+// Calcola segno solare dalla data di nascita
+function getSunSign(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const m = d.getMonth() + 1, day = d.getDate();
+  const signs = [
+    [1,20,'capricorno'],[2,19,'acquario'],[3,20,'pesci'],
+    [4,20,'ariete'],[5,21,'toro'],[6,21,'gemelli'],
+    [7,23,'cancro'],[8,23,'leone'],[9,23,'vergine'],
+    [10,23,'bilancia'],[11,22,'scorpione'],[12,22,'sagittario'],
+    [12,31,'capricorno']
+  ];
+  for (const [em, ed, sign] of signs) {
+    if (m < em || (m === em && day <= ed)) return sign;
+  }
+  return 'capricorno';
+}
+
+function goToMySign() {
+  closeIscrizione();
+  // _userSunSign settato da doIscrizione o loadUserMeta
+  const sign = window._userSunSign || getSunSign(document.getElementById('i-bdate')?.value);
+  // Salva nome per saluto se non ancora caricato da DB
+  if(!window._userFirstName){
+    window._userFirstName = document.getElementById('i-name')?.value?.split(' ')[0] || '';
+  }
+  if (sign && SIGNS[sign]) {
+    setTimeout(() => openSign(sign), 200);
+  }
+}
+
+// Genera link Telegram con token personale
+async function generateTelegramLink() {
+  try {
+    const data = await backendFetch('/api/telegram/generate-link-token', { method: 'POST' });
+    if (data && data.link) {
+      document.getElementById('isc-tg-btn').href = data.link;
+    }
+  } catch(e) {
+    document.getElementById('isc-tg-btn').href = 'https://t.me/LunastrologicaBot';
+  }
+}
+
+async function doIscrizione() {
+  const nome     = document.getElementById('i-name').value.trim();
+  const email    = document.getElementById('i-email').value.trim();
+  const pwd      = document.getElementById('i-pwd').value;
+  const bdate    = document.getElementById('i-bdate').value;
+  const btime    = document.getElementById('i-btime').value;
+  const bcity    = document.getElementById('i-bcity').value.trim();
+  const bcountry = document.getElementById('i-bcountry')?.value || 'IT';
+  const phone    = document.getElementById('i-phone').value.trim();
+  const genderEl = document.querySelector('input[name="i-gender"]:checked');
+  // Mappa il valore del form al valore ENUM del DB: M, F, other, not_specified
+  const genderRaw = genderEl?.value || null;
+  const gender = genderRaw === 'A' ? 'other' : (genderRaw || 'not_specified');
+
+  if (!nome)  return showIscMsg('Inserisci il tuo nome');
+  if (!email) return showIscMsg('Inserisci la tua email');
+  if (!pwd || pwd.length < 8) return showIscMsg('Password di almeno 8 caratteri');
+  if (!bdate) return showIscMsg('Inserisci la tua data di nascita');
+  if (!bcity) return showIscMsg('Inserisci la tua città di nascita');
+
+  showIscMsg('Creazione account in corso…', 'ok');
+
+  // STEP 1 — Crea account Supabase Auth
+  const { data: signData, error: signErr } = await sb.auth.signUp({
+    email, password: pwd,
+    options: { data: { full_name: nome } }
+  });
+  if (signErr) return showIscMsg(signErr.message);
+
+  const uid = signData.user?.id;
+  if (!uid) return showIscMsg('Errore durante la registrazione, riprova.');
+
+  // Valori pre-calcolati
+  const firstName = nome.split(' ')[0];
+  const lastName  = nome.split(' ').slice(1).join(' ') || null;
+  const sunSign   = getSunSign(bdate);
+
+  // Geocoding città di nascita per calcoli astrologici precisi
+  let birthLat = null, birthLng = null;
+  try {
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(bcity+','+bcountry)}&format=json&limit=1`);
+    const geoData = await geoRes.json();
+    if (geoData && geoData[0]) {
+      birthLat = parseFloat(geoData[0].lat);
+      birthLng = parseFloat(geoData[0].lon);
+    }
+  } catch(e) { console.warn('Geocoding fallito:', e.message); }
+
+  window._userFirstName = firstName;
+  window._userSunSign   = sunSign;
+
+  // STEP 2 — Aspetta sessione attiva (max 5 secondi)
+  showIscMsg('Configurazione profilo…', 'ok');
+  let sessionReady = false;
+  for (let i = 0; i < 10; i++) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.access_token) { sessionReady = true; break; }
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  if (sessionReady) {
+
+    // Salva solo su profiles (sistema unificato — clienti è legacy)
+    const profileData = {
+      id: uid, email,
+      first_name: firstName, last_name: lastName,
+      display_name: nome, gender: gender,
+      phone: phone || null,
+      birth_date: bdate, birth_time: btime || null,
+      birth_time_unknown: !btime,
+      birth_city: bcity, birth_country: bcountry,
+      birth_lat: birthLat, birth_lng: birthLng,
+      sun_sign: sunSign, onboarding_completed: true,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error: e2 } = await sb.from('profiles').upsert(profileData);
+
+    const { error: e3 } = await sb.from('birth_data').upsert({
+      user_id: uid,
+      birth_date: bdate, birth_time: btime || null,
+      birth_city: bcity, birth_country: bcountry,
+      birth_lat: birthLat, birth_lng: birthLng,
+      is_primary: true
+    });
+
+  } else {
+    // Sessione non pronta → usa backend con service_role (bypassa RLS)
+    console.warn('Sessione non pronta, salvataggio via backend');
+    try {
+      await fetch(BACKEND_URL + '/api/profiles/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...saveData, phone: phone || null })
+      });
+    } catch(e) {
+      console.warn('Backend non disponibile:', e.message);
+    }
+  }
+
+  // STEP 4 — UI benvenuto
+  document.querySelectorAll('#iscrizioneModal .pers-step').forEach(x => x.classList.remove('active'));
+  document.getElementById('istep2').classList.add('active');
+  const genderVal = document.querySelector('input[name="i-gender"]:checked')?.value || 'A';
+  const welcome = genderVal === 'M' ? 'Benvenuto' : genderVal === 'F' ? 'Benvenuta' : 'Benvenuto/a';
+  document.getElementById('isc-welcome-title').textContent = welcome + ' ' + firstName + '! ✦';
+
+  // STEP 5 — Ascendente e Luna calcolati da horoscope/today al primo accesso
+}
+
+function openPersonalize() {
+  // Alias mantenuto per compatibilità
+  openIscrizione('personalizza');
+}
+
+function openAuth(t='login'){
+  document.getElementById('authModal').classList.add('open');
+  document.getElementById('authLogin').style.display='block';
+  document.getElementById('authForgot').style.display='none';
+  document.getElementById('authReset').style.display='none';
+  document.getElementById('amsg').style.display='none';
+  document.body.style.overflow='hidden';
+  document.body.classList.add('modal-open');
+}
+
+function closeAuth(){
+  document.getElementById('authModal').classList.remove('open');
+  document.body.style.overflow='';
+  document.body.classList.remove('modal-open');
+  document.getElementById('amsg').style.display='none';
+  updateCart();
+}
+
+// Mantieni switchTab per retrocompatibilità (non più usata attivamente)
+function switchTab(t){ openAuth(t); }
+
+function showMsg(m,t='err'){
+  const e=document.getElementById('amsg');
+  e.textContent=m; e.className=`amsg ${t}`; e.style.display='block';
+}
+
+function showForgot(){
+  document.getElementById('authLogin').style.display='none';
+  document.getElementById('authForgot').style.display='block';
+  document.getElementById('forgot-msg').style.display='none';
+}
+
+function hideForgot(){
+  document.getElementById('authForgot').style.display='none';
+  document.getElementById('authLogin').style.display='block';
+}
+
+async function doForgot(){
+  const email = document.getElementById('forgot-email').value.trim();
+  if(!email) return showForgotMsg('Inserisci la tua email');
+  const{error} = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/'
+  });
+  if(error) return showForgotMsg(error.message);
+  showForgotMsg('Email inviata! Controlla la casella e clicca il link ✦','ok');
+}
+
+function showForgotMsg(m,t='err'){
+  const e=document.getElementById('forgot-msg');
+  e.textContent=m; e.className=`amsg ${t}`; e.style.display='block';
+}
+
+async function doReset(){
+  const p1=document.getElementById('reset-pwd').value;
+  const p2=document.getElementById('reset-pwd2').value;
+  if(!p1||p1.length<8) return showResetMsg('Password di almeno 8 caratteri');
+  if(p1!==p2) return showResetMsg('Le password non coincidono');
+  const{error}=await sb.auth.updateUser({password:p1});
+  if(error) return showResetMsg(error.message);
+  showResetMsg('Password aggiornata! Accesso in corso…','ok');
+  setTimeout(()=>{ closeAuth(); }, 1800);
+}
+
+function showResetMsg(m,t='err'){
+  const e=document.getElementById('reset-msg');
+  e.textContent=m; e.className=`amsg ${t}`; e.style.display='block';
+}
+
+// Intercetta token recovery/email confirmation all'avvio pagina
+sb.auth.onAuthStateChange((event, session) => {
+  user = session?.user || null;
+  updateUI();
+  if(user){
+    const delay = event === 'SIGNED_IN' ? 2000 : 0;
+    setTimeout(() => {
+      loadUserMeta();
+      // Se la scheda segno è aperta, ricarica i chip natali ora che la sessione è pronta
+      if(document.getElementById('signModal')?.classList.contains('open')){
+        loadNatalChips();
+      }
+    }, delay);
+  }
+  if(event === 'PASSWORD_RECOVERY'){
+    document.getElementById('authLogin').style.display='none';
+    document.getElementById('authForgot').style.display='none';
+    document.getElementById('authReset').style.display='block';
+    document.getElementById('authModal').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+});
+
+async function doLogin(){
+  const e=document.getElementById('le').value.trim(),p=document.getElementById('lp').value;
+  if(!e||!p) return showMsg('Inserisci email e password');
+  const{error}=await sb.auth.signInWithPassword({email:e,password:p});
+  if(error) return showMsg(error.message);
+  showMsg('Accesso effettuato ✦','ok');
+  setTimeout(closeAuth,1200);
+}
+
+async function doRegister(){
+  // Reindirizza al form completo di iscrizione (dati natali obbligatori)
+  closeAuth();
+  openIscrizione('personalizza');
+}
+
+async function doGoogle(){
+  const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});
+  if(error) showMsg(error.message);
+}
+
+async function doLogout(){ await sb.auth.signOut(); document.getElementById('udrop').classList.remove('open'); localStorage.clear(); sessionStorage.clear(); window.location.href = window.location.origin + window.location.pathname; }
+function toggleDrop(){ document.getElementById('udrop').classList.toggle('open'); }
+function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('dov').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('dov').classList.remove('open'); document.body.style.overflow=''; }
+
+// ── LUNA ──────────────────────────────────────────────────────
+let lunaSessionId = null;
+let lunaMinutesBalance = 0;
+let lunaTimerInterval = null;
+let lunaSessionStart = null;
+
+async function openLuna(){
+  document.getElementById('lunaModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.body.classList.add('modal-open');
+
+  const msgs = document.getElementById('lunaMsgs');
+
+  if(!user){
+    // Non iscritto: mostra paywall direttamente
+    if(msgs.children.length === 0){
+      addLunaMsg('a','Ciao! Sono Luna, la tua astrologa personale. ✨\n\nPer consultarmi ho bisogno di conoscerti: iscriviti gratuitamente e ricevi 15 minuti omaggio con me.');
+    }
+    document.getElementById('lunaPaywall').style.display='block';
+    document.getElementById('lunaInp').disabled=true;
+    document.getElementById('lunaSend').disabled=true;
+    document.getElementById('lunaTimer').textContent='—';
+    document.getElementById('lunaTimerLabel').textContent='Iscriviti per iniziare';
+    return;
+  }
+
+  // Utente iscritto: controlla saldo minuti
+  try {
+    const bal = await backendFetch('/api/luna/balance');
+    lunaMinutesBalance = bal?.balance ?? 0;
+  } catch(e){ lunaMinutesBalance = 0; }
+
+  if(lunaMinutesBalance <= 0){
+    // Minuti esauriti
+    if(msgs.children.length === 0){
+      addLunaMsg('a','I tuoi 15 minuti omaggio sono stati utilizzati. 🌙\n\nAcquista un pacchetto per continuare a consultarmi.');
+    }
+    document.getElementById('lunaPaywall').style.display='block';
+    document.getElementById('lunaInp').disabled=true;
+    document.getElementById('lunaSend').disabled=true;
+    document.getElementById('lunaTimer').textContent='0 min';
+    document.getElementById('lunaTimerLabel').textContent='Minuti esauriti';
+    return;
+  }
+
+  // Saldo disponibile — avvia sessione
+  document.getElementById('lunaPaywall').style.display='none';
+  document.getElementById('lunaInp').disabled=false;
+  document.getElementById('lunaSend').disabled=false;
+  document.getElementById('lunaTimer').textContent = lunaMinutesBalance + ' min';
+  document.getElementById('lunaTimerLabel').textContent = 'omaggio disponibili';
+
+  if(msgs.children.length === 0){
+    const nome = window._userFirstName ? ', ' + window._userFirstName : '';
+    addLunaMsg('a',`Ciao${nome}! Sono Luna 🌙\n\nHo già il tuo tema natale — posso guidarti su amore, lavoro, momenti favorevoli o qualsiasi domanda tu voglia portarmi.\n\nHai ${lunaMinutesBalance} minuti omaggio. Di cosa vuoi parlare?`);
+  }
+
+  // Avvia sessione sul backend se non già attiva
+  if(!lunaSessionId){
+    try {
+      const sess = await backendFetch('/api/luna/session/start', { method:'POST', body: JSON.stringify({ use_voice: false }) });
+      lunaSessionId = sess?.session_id || null;
+      lunaSessionStart = Date.now();
+      startLunaTimer();
+    } catch(e){ console.warn('Luna session start failed:', e.message); }
+  }
+}
+
+function startLunaTimer(){
+  if(lunaTimerInterval) clearInterval(lunaTimerInterval);
+  lunaTimerInterval = setInterval(()=>{
+    if(!lunaSessionStart) return;
+    const elapsedMin = Math.floor((Date.now() - lunaSessionStart) / 60000);
+    const remaining = Math.max(0, lunaMinutesBalance - elapsedMin);
+    const timerEl = document.getElementById('lunaTimer');
+    timerEl.textContent = remaining + ' min';
+    timerEl.className = 'luna-timer' + (remaining <= 2 ? ' urgent' : '');
+    if(remaining <= 0){
+      clearInterval(lunaTimerInterval);
+      document.getElementById('lunaInp').disabled=true;
+      document.getElementById('lunaSend').disabled=true;
+      document.getElementById('lunaPaywall').style.display='block';
+      addLunaMsg('a','Il tempo omaggio è terminato. Spero di averti dato buoni spunti! 🌙\nAcquista un pacchetto per continuare.');
+    }
+  }, 10000); // controlla ogni 10 secondi
+}
+
+function closeLuna(){
+  document.getElementById('lunaModal').classList.remove('open');
+  document.body.style.overflow='';
+  document.body.classList.remove('modal-open');
+  // Termina sessione backend se attiva
+  if(lunaSessionId){
+    backendFetch('/api/luna/session/end', { method:'POST', body: JSON.stringify({ session_id: lunaSessionId }) })
+      .catch(e => console.warn('Luna session end failed:', e.message));
+    lunaSessionId = null;
+  }
+  if(lunaTimerInterval){ clearInterval(lunaTimerInterval); lunaTimerInterval = null; }
+}
+
+async function sendLuna(){
+  const inp = document.getElementById('lunaInp');
+  const txt = inp.value.trim();
+  if(!txt) return;
+
+  if(!user){ openIscrizione('luna'); return; }
+  if(!lunaSessionId){
+    addLunaMsg('a','Sessione non attiva. Riapri la chat con Luna.');
+    return;
+  }
+
+  addLunaMsg('u', txt);
+  inp.value='';
+  inp.disabled=true;
+  document.getElementById('lunaSend').disabled=true;
+
+  try {
+    const res = await backendFetch('/api/luna/message', {
+      method:'POST',
+      body: JSON.stringify({ session_id: lunaSessionId, message: txt })
+    });
+    addLunaMsg('a', res.reply || '...');
+    // Aggiorna saldo minuti dalla risposta
+    if(res.minutes_remaining !== undefined){
+      lunaMinutesBalance = res.minutes_remaining;
+      const timerEl = document.getElementById('lunaTimer');
+      timerEl.textContent = lunaMinutesBalance + ' min';
+      timerEl.className = 'luna-timer' + (lunaMinutesBalance <= 2 ? ' urgent' : '');
+      if(lunaMinutesBalance <= 0){
+        inp.disabled=true;
+        document.getElementById('lunaSend').disabled=true;
+        document.getElementById('lunaPaywall').style.display='block';
+      }
+    }
+  } catch(e){
+    addLunaMsg('a','Connessione interrotta. Riprova tra un momento. 🌙');
+  }
+
+  inp.disabled = lunaMinutesBalance <= 0;
+  document.getElementById('lunaSend').disabled = lunaMinutesBalance <= 0;
+}
+
+function openSrv(k){
+  const SIGN_SERVICES = {
+    amore:{ico:'💕',name:'Amore & Relazioni',tagline:'Compatibilità · transiti del cuore · timing',
+      desc:'Scopri la compatibilità con il tuo partner, i periodi favorevoli all\'amore e come le stelle influenzano le tue relazioni.',
+      includes:['Sinastrìa completa con il partner','Compatibilità su 6 aree chiave','Transiti di Venere nei prossimi 3 mesi','Periodi favorevoli a nuovi incontri','Timing per decisioni sentimentali','Consigli pratici dalla carta natale']},
+    lavoro:{ico:'💼',name:'Lavoro & Carriera',tagline:'Vocazione · timing · ambizioni',
+      desc:'Il tuo tema natale rivela la carriera più adatta, i talenti nascosti e i momenti migliori per le mosse professionali.',
+      includes:['Analisi Medio Cielo e X Casa','Talenti e vocazioni dalla carta natale','Carriere e ambienti di lavoro ideali','Timing per cambi e promozioni','Relazioni con colleghi e superiori','Report professionale completo']},
+    denaro:{ico:'💰',name:'Denaro & Fortuna',tagline:'Giove · investimenti · prosperità',
+      desc:'Giove, la II Casa e i transiti dei pianeti lenti rivelano i tuoi periodi di maggiore prosperità e le decisioni finanziarie più sagge.',
+      includes:['Analisi della II Casa natale','Transiti di Giove per 3 mesi','Periodi favorevoli a investimenti','Rischi e opportunità finanziarie','Timing per decisioni importanti','Focus su risparmio e crescita']},
+    natale:{ico:'⭐',name:'Tema Natale Completo',tagline:'La mappa della tua anima',
+      desc:'Analisi dettagliata della tua carta natale: Sole, Luna, Ascendente, le 12 case astrologiche, tutti i pianeti e i principali aspetti.',
+      includes:['Report completo di 20+ pagine','Tutti i pianeti interpretati','Le 12 case astrologiche','Aspetti e configurazioni speciali','Transiti attuali sulla tua carta','Messaggio personale di Luna']},
+  };
+  const s = SIGN_SERVICES[k]; if(!s) return;
+  document.getElementById('srv-ico').textContent=s.ico;
+  document.getElementById('srv-name').textContent=s.name;
+  document.getElementById('srv-tagline').textContent=s.tagline;
+  document.getElementById('srv-desc').textContent=s.desc;
+  document.getElementById('srv-includes').innerHTML=s.includes.map(i=>`<li>${i}</li>`).join('');
+  document.getElementById('srv-price').textContent = user ? 'Usa i tuoi crediti ✦' : 'Iscriviti per acquistare';
+  document.getElementById('srv-billing').textContent = user ? 'Seleziona dalla scheda del tuo segno' : 'Gratuito iscriversi · Paga solo quello che vuoi';
+  document.getElementById('srv-buy-btn').onclick=()=>{ closeSrv(); if(user){ /* todo: apri segno */ } else { openIscrizione('personalizza'); } };
+  document.getElementById('srvModal').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.body.classList.add('modal-open');
+}
+
+function closeSrv(){ document.getElementById('srvModal').classList.remove('open'); document.body.style.overflow=''; document.body.classList.remove('modal-open'); }
+
+function addLunaMsg(type,text){
+  const msgs=document.getElementById('lunaMsgs');
+  const d=document.createElement('div');
+  d.className=`msg msg-${type}`;
+  d.textContent=text;
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+document.getElementById('lunaInp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey) sendLuna();});
+function selLPlan(el,p){ document.querySelectorAll('.lplan').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
+
+// ── SESSO ─────────────────────────────────────────────────────
+function selectGender(val){
+  ['m','f','a'].forEach(v=>{
+    const l=document.getElementById('gender-'+v+'-lbl');
+    if(!l) return;
+    l.style.borderColor = v===val.toLowerCase() ? 'var(--violet)' : 'var(--border)';
+    l.style.background  = v===val.toLowerCase() ? 'rgba(155,89,245,.18)' : 'rgba(255,255,255,.06)';
+    l.style.color       = v===val.toLowerCase() ? 'var(--violet2)' : 'var(--soft)';
+  });
+}
+
+document.querySelectorAll('.bni').forEach(b=>{
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.bni').forEach(x=>x.classList.remove('on'));
+    this.classList.add('on');
+  });
+});
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.umenu')) document.getElementById('udrop').classList.remove('open');
+  // Chiudi tendina pianeti se click fuori
+  if(!e.target.closest('#planets-btn')) document.getElementById('planets-drop')?.classList.remove('open');
+  ['authModal','signModal','persModal','srvModal','lunaModal','iscrizioneModal'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && e.target===el){
+      el.classList.remove('open');
+      document.body.style.overflow='';
+    }
+  });
+});
+
+// SERVICES definiti dentro openSrv sopra
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     API TESTER MODAL
+══════════════════════════════════════════════════════════ -->
+<style>
+#apiTesterModal {
+  display:none; position:fixed; inset:0; z-index:900;
+  background:rgba(0,0,0,.85); overflow-y:auto; padding:1rem;
+}
+#apiTesterModal.open { display:block; }
+.api-tester-inner {
+  max-width:720px; margin:0 auto; padding-bottom:3rem;
+}
+.api-tester-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 0 .8rem;
+}
+.api-tester-header h2 {
+  font-family:'Cinzel',serif; color:var(--gold); font-size:1rem; letter-spacing:.05em;
+}
+.api-tester-header button {
+  background:none; border:none; color:var(--muted); font-size:1.4rem; cursor:pointer; line-height:1;
+}
+.at-card {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:1rem 1.2rem; margin-bottom:1rem;
+}
+.at-card h3 {
+  font-family:'Cinzel',serif; font-size:.78rem; color:var(--violet2);
+  letter-spacing:.05em; margin-bottom:.7rem;
+}
+.at-ep-list { list-style:none; }
+.at-ep-item {
+  display:flex; align-items:center; gap:.6rem; padding:.38rem .5rem;
+  border-radius:6px; cursor:pointer; transition:background .15s; font-size:.8rem;
+}
+.at-ep-item:hover { background:rgba(155,89,245,.12); }
+.at-ep-item.active { background:rgba(155,89,245,.2); }
+.at-mbadge {
+  font-size:.62rem; font-weight:700; padding:.16rem .42rem; border-radius:4px;
+  min-width:36px; text-align:center; text-transform:uppercase;
+}
+.at-mbadge.GET    { background:rgba(46,204,113,.2);  color:#2ecc71; }
+.at-mbadge.POST   { background:rgba(52,152,219,.2);  color:#3498db; }
+.at-mbadge.PUT    { background:rgba(230,126,34,.2);  color:#e67e22; }
+.at-mbadge.DELETE { background:rgba(231,76,60,.2);   color:#e74c3c; }
+.at-ep-path { color:var(--text); font-family:monospace; }
+.at-ep-desc { color:var(--muted); font-size:.72rem; margin-left:auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+.at-field {
+  display:grid; grid-template-columns:120px 1fr; align-items:center;
+  gap:.4rem; margin-bottom:.6rem;
+}
+.at-field label { font-size:.75rem; color:var(--muted); font-family:monospace; }
+.at-field input, .at-field select, .at-field textarea {
+  background:rgba(255,255,255,.05); border:1px solid var(--border);
+  border-radius:7px; color:var(--text); font-family:'Nunito',sans-serif;
+  font-size:.82rem; padding:.4rem .65rem; width:100%; outline:none;
+  transition:border-color .2s;
+}
+.at-field input:focus, .at-field textarea:focus { border-color:var(--violet2); }
+.at-field textarea { min-height:90px; resize:vertical; font-family:monospace; font-size:.74rem; }
+.at-field-full { grid-template-columns:1fr; }
+.at-field-full label { margin-bottom:.3rem; }
+.at-jwt {
+  background:rgba(240,192,64,.05); border:1px solid rgba(240,192,64,.18);
+  border-radius:9px; padding:.75rem 1rem; margin-bottom:1rem;
+  font-size:.75rem; color:var(--muted);
+}
+.at-jwt strong { color:var(--gold); }
+.at-jwt input {
+  width:100%; margin-top:.4rem;
+  background:rgba(255,255,255,.05); border:1px solid rgba(240,192,64,.18);
+  border-radius:6px; color:var(--text); font-family:monospace;
+  font-size:.7rem; padding:.32rem .55rem; outline:none;
+}
+.at-btn-send {
+  background:linear-gradient(135deg,var(--violet2,#9b59f5),#6a3fc8);
+  color:#fff; border:none; border-radius:8px; padding:.55rem 1.4rem;
+  font-family:'Cinzel',serif; font-size:.8rem; cursor:pointer;
+  letter-spacing:.04em; transition:opacity .2s; margin-top:.4rem;
+}
+.at-btn-send:hover { opacity:.85; }
+.at-btn-send:disabled { opacity:.4; cursor:not-allowed; }
+.at-status-ok  { color:#2ecc71; }
+.at-status-err { color:#e74c3c; }
+#at-response-body {
+  background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.07);
+  border-radius:8px; padding:.7rem; font-family:monospace; font-size:.72rem;
+  white-space:pre-wrap; word-break:break-all; max-height:380px;
+  overflow-y:auto; color:#a0f0a0; line-height:1.5; margin-top:.5rem;
+}
+.at-loader { color:var(--muted); font-size:.78rem; padding:.5rem 0; }
+</style>
+
+<div id="apiTesterModal">
+  <div class="api-tester-inner">
+    <div class="api-tester-header">
+      <h2>✦ API Tester — astra-personalday</h2>
+      <button onclick="closeApiTester()">✕</button>
+    </div>
+
+    <!-- JWT -->
+    <div class="at-jwt">
+      <strong>Bearer Token (JWT)</strong> — incolla il token per gli endpoint autenticati<br>
+      <small>Console browser → <code>(await sb.auth.getSession()).data.session.access_token</code></small>
+      <input type="text" id="at-jwt" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+    </div>
+
+    <!-- Endpoint list -->
+    <div class="at-card">
+      <h3>ENDPOINT</h3>
+      <div id="at-ep-loader" class="at-loader">⟳ Caricamento dal backend…</div>
+      <ul class="at-ep-list" id="at-ep-list"></ul>
+    </div>
+
+    <!-- Request -->
+    <div class="at-card" id="at-req-card" style="display:none;">
+      <h3 id="at-req-title">RICHIESTA</h3>
+      <div id="at-params"></div>
+      <button class="at-btn-send" id="at-btn-send" onclick="atSend()">✦ Invia</button>
+    </div>
+
+    <!-- Response -->
+    <div class="at-card" id="at-res-card" style="display:none;">
+      <h3 id="at-res-status">RISPOSTA</h3>
+      <pre id="at-response-body"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── API TESTER ────────────────────────────────────────────────
+const AT_BASE = 'https://astra-personalday.onrender.com';
+let atSpec = null, atCurrent = null;
+
+function openApiTester() {
+  document.getElementById('apiTesterModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('udrop').classList.remove('open');
+  if (!atSpec) atLoadSpec();
+}
+
+function closeApiTester() {
+  document.getElementById('apiTesterModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function atLoadSpec() {
+  const loader = document.getElementById('at-ep-loader');
+  try {
+    const r = await fetch(AT_BASE + '/openapi.json');
+    atSpec = await r.json();
+    atRenderEndpoints();
+  } catch(e) {
+    loader.textContent = '✗ Errore caricamento spec: ' + e.message;
+  }
+}
+
+function atRenderEndpoints() {
+  const loader = document.getElementById('at-ep-loader');
+  loader.style.display = 'none';
+  const list = document.getElementById('at-ep-list');
+  list.innerHTML = '';
+
+  for (const [path, methods] of Object.entries(atSpec.paths || {})) {
+    for (const [method, op] of Object.entries(methods)) {
+      if (!['get','post','put','delete','patch'].includes(method)) continue;
+      const li = document.createElement('li');
+      li.className = 'at-ep-item';
+      li.innerHTML = `
+        <span class="at-mbadge ${method.toUpperCase()}">${method.toUpperCase()}</span>
+        <span class="at-ep-path">${path}</span>
+        <span class="at-ep-desc">${op.summary || ''}</span>
+      `;
+      li.onclick = () => atSelectEndpoint(path, method, op, li);
+      list.appendChild(li);
+    }
+  }
+}
+
+function atSelectEndpoint(path, method, op, li) {
+  document.querySelectorAll('.at-ep-item').forEach(x => x.classList.remove('active'));
+  li.classList.add('active');
+  atCurrent = { path, method, op };
+
+  document.getElementById('at-req-card').style.display = 'block';
+  document.getElementById('at-req-title').textContent =
+    `${method.toUpperCase()} ${path}${op.summary ? ' — ' + op.summary : ''}`;
+  document.getElementById('at-res-card').style.display = 'none';
+  atRenderParams(path, method, op);
+}
+
+function atRenderParams(path, method, op) {
+  const f = document.getElementById('at-params');
+  f.innerHTML = '';
+  const params = op.parameters || [];
+  params.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'at-field';
+    row.innerHTML = `
+      <label>${p.name}${p.required?' <span style="color:#e74c3c">*</span>':''}<br><small style="font-size:.62rem;color:var(--muted)">${p.in}</small></label>
+      <input type="text" id="atp_${p.name}" placeholder="${p.schema?.example||p.schema?.default||p.description||''}" value="${p.schema?.default||''}">
+    `;
+    f.appendChild(row);
+  });
+
+  const bodySchema = op.requestBody?.content?.['application/json']?.schema;
+  if (bodySchema) {
+    const example = atBuildExample(bodySchema);
+    const row = document.createElement('div');
+    row.className = 'at-field at-field-full';
+    row.innerHTML = `
+      <label>Request Body (JSON)</label>
+      <textarea id="atp_body">${JSON.stringify(example, null, 2)}</textarea>
+    `;
+    f.appendChild(row);
+  }
+
+  if (!params.length && !bodySchema) {
+    f.innerHTML = '<p style="color:var(--muted);font-size:.78rem;margin-bottom:.5rem;">Nessun parametro richiesto.</p>';
+  }
+}
+
+function atBuildExample(schema) {
+  if (!schema || !atSpec) return {};
+  if (schema.$ref) {
+    const path = schema.$ref.replace('#/', '').split('/');
+    let ref = atSpec;
+    for (const p of path) ref = ref?.[p];
+    return atBuildExample(ref);
+  }
+  if (schema.example !== undefined) return schema.example;
+  if (schema.type === 'object' || schema.properties) {
+    const obj = {};
+    for (const [k, v] of Object.entries(schema.properties || {})) obj[k] = atBuildExample(v);
+    return obj;
+  }
+  if (schema.type === 'array') return [atBuildExample(schema.items)];
+  if (schema.type === 'string') return schema.example || schema.default || '';
+  if (schema.type === 'integer' || schema.type === 'number') return schema.example || 0;
+  if (schema.type === 'boolean') return false;
+  return null;
+}
+
+async function atSend() {
+  if (!atCurrent) return;
+  const { path, method, op } = atCurrent;
+  const btn = document.getElementById('at-btn-send');
+  btn.disabled = true; btn.textContent = '⟳ Invio…';
+
+  let url = AT_BASE + path;
+  const queryParams = [];
+  (op.parameters || []).forEach(p => {
+    const val = document.getElementById('atp_' + p.name)?.value?.trim();
+    if (!val) return;
+    if (p.in === 'path') url = url.replace(`{${p.name}}`, encodeURIComponent(val));
+    if (p.in === 'query') queryParams.push(`${p.name}=${encodeURIComponent(val)}`);
+  });
+  if (queryParams.length) url += '?' + queryParams.join('&');
+
+  const headers = { 'Content-Type': 'application/json' };
+  const jwt = document.getElementById('at-jwt').value.trim();
+  if (jwt) headers['Authorization'] = 'Bearer ' + jwt;
+
+  let body = undefined;
+  const bodyEl = document.getElementById('atp_body');
+  if (bodyEl?.value?.trim()) body = bodyEl.value.trim();
+
+  try {
+    const res = await fetch(url, {
+      method: method.toUpperCase(), headers,
+      body: ['get','head'].includes(method) ? undefined : body
+    });
+    const text = await res.text();
+    let fmt;
+    try { fmt = JSON.stringify(JSON.parse(text), null, 2); } catch { fmt = text; }
+
+    document.getElementById('at-res-status').innerHTML =
+      `RISPOSTA <span class="${res.ok?'at-status-ok':'at-status-err'}">${res.status} ${res.statusText}</span>`;
+    document.getElementById('at-response-body').textContent = fmt;
+    document.getElementById('at-res-card').style.display = 'block';
+  } catch(e) {
+    document.getElementById('at-res-status').innerHTML = `RISPOSTA <span class="at-status-err">ERRORE RETE / CORS</span>`;
+    document.getElementById('at-response-body').textContent = e.message;
+    document.getElementById('at-res-card').style.display = 'block';
+  }
+
+  btn.disabled = false; btn.textContent = '✦ Invia';
+}
+
+</script>
+</body>
+</html>
